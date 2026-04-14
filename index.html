@@ -224,16 +224,20 @@ function cr2(f2,t2){const dly=AJ.filter(j=>j.status==='active').reduce((s,j)=>s+
 async function boot(){
   ss('busy','Loading...');
   try{
-    const[jr,cr,rr,pr]=await Promise.all([
-      sb.from('jobs').select('*').order('customer_name'),
+    const jr=await sb.from('jobs').select('*').order('customer_name');
+    if(jr.error)throw new Error('Jobs error: '+jr.error.message);
+    AJ=jr.data||[];
+    const[cr,rr,pr]=await Promise.all([
       sb.from('customers').select('*').order('name'),
       sb.from('rounds').select('*').order('name'),
       sb.from('payments').select('*').order('payment_date',{ascending:false})
     ]);
-    if(jr.error)throw jr.error;
-    AJ=jr.data||[];AC=cr.data||[];AR=rr.data||[];AP=pr.data||[];
-    aRC(AR);ss('ok',AJ.length+' jobs');render();
-  }catch(e){ss('err','Error');toast('Load failed: '+e.message,'err');}
+    AC=cr.data||[];AR=rr.data||[];AP=pr.data||[];
+    aRC(AR);ss('ok',AJ.length+' jobs loaded');render();
+  }catch(e){
+    ss('err','Error');
+    document.getElementById('pc').innerHTML='<div class="ldg"><div style="color:#dc2626;font-size:14px;margin-bottom:8px">Could not connect: '+e.message+'</div><button onclick="boot()" style="padding:8px 16px;background:#2B5BA8;color:white;border:none;border-radius:8px;cursor:pointer">Retry</button></div>';
+  }
 }
 
 const SNAV={
