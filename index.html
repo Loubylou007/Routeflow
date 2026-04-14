@@ -6,1049 +6,920 @@
 <title>RouteFlow — WCC</title>
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="RouteFlow">
-<meta name="theme-color" content="#0F172A">
+<meta name="theme-color" content="#2B5BA8">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  --bg:#0F172A;--bg2:#1E293B;--bg3:#334155;--bg4:#475569;
-  --card:#1E293B;--card2:#263348;
-  --text:#F1F5F9;--text2:#94A3B8;--text3:#64748B;
-  --blue:#3B82F6;--blue2:#1D4ED8;--blue-light:#EFF6FF;
-  --green:#10B981;--green2:#065F46;
-  --amber:#F59E0B;--amber2:#78350F;
-  --red:#EF4444;--red2:#7F1D1D;
-  --purple:#8B5CF6;
-  --border:rgba(255,255,255,0.08);
-  --radius:10px;--radius-lg:14px;
+  --navy:#2B5BA8;--navy2:#1e4080;--navy3:#3a6fc4;
+  --pink:#e91e8c;--pink2:#c4177a;
+  --bg:#eef2f7;--bg2:#f8f9fc;--white:#fff;
+  --text:#1a1a2e;--text2:#4a5568;--text3:#718096;
+  --border:#d1d9e6;--border2:#e2e8f0;
+  --green:#16a34a;--red:#dc2626;--amber:#d97706;--blue:#2563eb;
+  --r:8px;--rl:12px;
 }
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;font-size:14px}
+.app{display:flex;flex-direction:column;height:100vh;overflow:hidden}
 
-/* Layout */
-.app{display:flex;height:100vh;overflow:hidden}
-.sidebar{width:220px;background:var(--bg2);border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0}
-.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
-.topbar{background:var(--bg2);border-bottom:1px solid var(--border);padding:12px 20px;display:flex;align-items:center;gap:12px;flex-shrink:0}
-.content{flex:1;overflow-y:auto;padding:20px}
+.topnav{background:var(--navy);display:flex;align-items:stretch;padding:0 12px;height:44px;flex-shrink:0}
+.brand{font-size:15px;font-weight:700;color:#fff;padding:0 14px 0 4px;display:flex;align-items:center}
+.brand span{color:#7dd3fc}
+.nt{height:44px;padding:0 13px;display:flex;align-items:center;font-size:13px;font-weight:600;color:rgba(255,255,255,0.72);cursor:pointer;border:none;background:none;font-family:inherit;border-bottom:3px solid transparent;transition:all .15s;white-space:nowrap}
+.nt:hover{color:#fff;background:rgba(255,255,255,0.08)}
+.nt.on{color:#fff;border-bottom:3px solid var(--pink)}
+.tnr{margin-left:auto;display:flex;align-items:center;gap:8px}
+.pill{display:flex;align-items:center;gap:5px;font-size:11px;color:rgba(255,255,255,0.65);background:rgba(0,0,0,0.2);padding:3px 9px;border-radius:20px}
+.dot{width:6px;height:6px;border-radius:50%;background:#ccc}
+.dot.ok{background:#4ade80}.dot.busy{background:#fbbf24}.dot.err{background:#f87171}
 
-/* Sidebar */
-.sidebar-logo{padding:16px;border-bottom:1px solid var(--border)}
-.sidebar-logo h1{font-size:16px;font-weight:700;color:var(--text);letter-spacing:-0.3px}
-.sidebar-logo p{font-size:11px;color:var(--text3);margin-top:1px}
-.nav-section{padding:12px 8px 4px;font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px}
-.nav-item{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:8px;cursor:pointer;color:var(--text2);font-size:13px;font-weight:500;transition:all 0.15s;margin:1px 8px}
-.nav-item:hover{background:var(--bg3);color:var(--text)}
-.nav-item.active{background:var(--blue2);color:white}
-.nav-item .icon{font-size:15px;width:18px;text-align:center}
-.sidebar-bottom{margin-top:auto;padding:12px;border-top:1px solid var(--border)}
-.operative-badge{background:var(--bg3);border-radius:8px;padding:8px 10px;font-size:12px;cursor:pointer}
-.operative-badge .label{color:var(--text3);font-size:10px;margin-bottom:2px}
-.operative-badge .name{color:var(--text);font-weight:600}
+.subnav{background:#fff;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 14px;height:37px;flex-shrink:0}
+.st{height:37px;padding:0 11px;display:flex;align-items:center;font-size:12px;font-weight:600;color:var(--text2);cursor:pointer;border:none;border-bottom:2px solid transparent;background:none;font-family:inherit;white-space:nowrap}
+.st:hover{color:var(--navy)}
+.st.on{color:var(--pink);border-bottom:2px solid var(--pink)}
+.snr{margin-left:auto;display:flex;align-items:center;gap:8px}
+.sw{position:relative}
+.si{padding:5px 10px 5px 28px;border:1px solid var(--border);border-radius:var(--r);font-size:12px;color:var(--text);background:#fff;font-family:inherit;outline:none;width:200px}
+.si:focus{border-color:var(--navy)}
+.sico{position:absolute;left:9px;top:50%;transform:translateY(-50%);font-size:12px;color:var(--text3);pointer-events:none}
+.srd{position:absolute;top:100%;left:0;right:0;background:#fff;border:1px solid var(--border);border-radius:var(--r);z-index:300;max-height:260px;overflow-y:auto;margin-top:3px;display:none;box-shadow:0 4px 12px rgba(0,0,0,.1)}
+.sri{padding:8px 12px;cursor:pointer;border-bottom:1px solid var(--border2)}
+.sri:hover{background:var(--bg2)}
 
-/* Topbar */
-.topbar-title{font-size:16px;font-weight:600;flex:1}
-.topbar-sub{font-size:12px;color:var(--text3)}
-.search-wrap{position:relative;flex:1;max-width:320px}
-.search-input{width:100%;background:var(--bg3);border:1px solid var(--border);border-radius:8px;padding:7px 12px 7px 32px;font-size:13px;color:var(--text);font-family:inherit;outline:none}
-.search-input:focus{border-color:var(--blue)}
-.search-icon{position:absolute;left:10px;top:50%;transform:translateY(-50%);color:var(--text3);font-size:13px}
-.sync-dot{width:8px;height:8px;border-radius:50%;background:#ccc;flex-shrink:0}
-.sync-dot.ok{background:var(--green)}
-.sync-dot.busy{background:var(--amber)}
-.sync-dot.err{background:var(--red)}
-.btn{padding:7px 14px;border-radius:8px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:var(--bg3);color:var(--text);font-family:inherit;transition:all 0.15s;display:inline-flex;align-items:center;gap:6px}
-.btn:hover{background:var(--bg4)}
-.btn-primary{background:var(--blue);border-color:var(--blue);color:white}
-.btn-primary:hover{background:var(--blue2)}
-.btn-success{background:var(--green);border-color:var(--green);color:white}
-.btn-danger{background:var(--red);border-color:var(--red);color:white;font-size:11px;padding:5px 10px}
-.btn-sm{padding:4px 10px;font-size:11px}
+.page{flex:1;overflow:hidden;display:flex;flex-direction:column}
+.content{flex:1;overflow-y:auto;padding:18px}
 
-/* Cards */
-.card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px}
-.card-sm{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:12px}
+.srow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:18px}
+.sc{background:#fff;border:1px solid var(--border);border-radius:var(--rl);padding:14px}
+.sl{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-bottom:3px}
+.sv{font-size:22px;font-weight:700}
+.sv.nv{color:var(--navy)}.sv.gn{color:var(--green)}.sv.am{color:var(--amber)}.sv.rd{color:var(--red)}
+.ss{font-size:11px;color:var(--text3);margin-top:1px}
 
-/* Stats grid */
-.stats-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin-bottom:20px}
-.stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px}
-.stat-label{font-size:11px;color:var(--text3);margin-bottom:4px;text-transform:uppercase;letter-spacing:0.5px}
-.stat-value{font-size:24px;font-weight:700}
-.stat-value.blue{color:var(--blue)}
-.stat-value.green{color:var(--green)}
-.stat-value.amber{color:var(--amber)}
-.stat-value.red{color:var(--red)}
-.stat-sub{font-size:11px;color:var(--text3);margin-top:2px}
+.sumcard{background:#fff;border:1px solid var(--border);border-radius:var(--rl);overflow:hidden}
+.sumhdr{padding:10px 14px;font-size:13px;font-weight:600;border-bottom:1px solid var(--border2);display:flex;align-items:center;gap:8px}
+.sumgrid{display:grid;grid-template-columns:1fr 1fr}
+.sumc{padding:13px 15px;border-right:1px solid var(--border2);border-bottom:1px solid var(--border2);cursor:pointer;transition:background .15s}
+.sumc:hover{background:var(--bg2)}
+.sumc:nth-child(2n){border-right:none}
+.sumc:nth-last-child(-n+2){border-bottom:none}
+.sumc-l{font-size:11px;font-weight:600;color:var(--text2);margin-bottom:2px}
+.sumc-s{font-size:10px;color:var(--text3);margin-bottom:3px}
+.sumc-v{font-size:19px;font-weight:700;color:var(--navy)}
 
-/* Tables */
-.table-wrap{overflow-x:auto}
+.tc{background:#fff;border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;margin-bottom:16px}
+.tch{padding:11px 14px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:8px}
+.tct{font-size:13px;font-weight:600;flex:1}
+.tw{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:13px}
-th{text-align:left;padding:8px 12px;color:var(--text3);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.5px;border-bottom:1px solid var(--border);white-space:nowrap}
-td{padding:9px 12px;border-bottom:1px solid var(--border);vertical-align:middle}
-tr:hover td{background:var(--bg3)}
+th{text-align:left;padding:7px 12px;color:var(--text3);font-weight:600;font-size:10px;text-transform:uppercase;letter-spacing:.4px;border-bottom:1px solid var(--border);white-space:nowrap;background:var(--bg2)}
+td{padding:8px 12px;border-bottom:1px solid var(--border2);vertical-align:middle}
 tr:last-child td{border-bottom:none}
+tbody tr{cursor:pointer;transition:background .1s}
+tbody tr:hover{background:#f0f4ff}
 
-/* Badges */
-.badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:20px;font-size:10px;font-weight:600;white-space:nowrap}
-.badge-active{background:rgba(16,185,129,0.15);color:#34D399}
-.badge-inactive{background:rgba(100,116,139,0.2);color:#94A3B8}
-.badge-prospect{background:rgba(245,158,11,0.15);color:#FCD34D}
-.badge-round{background:rgba(59,130,246,0.15);color:#93C5FD;max-width:120px;overflow:hidden;text-overflow:ellipsis}
-.badge-op{background:rgba(139,92,246,0.15);color:#C4B5FD}
-.badge-freq{background:rgba(16,185,129,0.1);color:#6EE7B7}
-.badge-due{background:rgba(245,158,11,0.15);color:#FCD34D}
-.badge-overdue{background:rgba(239,68,68,0.15);color:#FCA5A5}
-.badge-balance{background:rgba(239,68,68,0.15);color:#FCA5A5}
+.b{display:inline-flex;align-items:center;padding:2px 7px;border-radius:20px;font-size:10px;font-weight:600;white-space:nowrap}
+.b-active{background:#dcfce7;color:#15803d}
+.b-inactive{background:#f1f5f9;color:#64748b}
+.b-prospect{background:#fef3c7;color:#92400e}
+.b-round{background:#dbeafe;color:#1e40af;max-width:120px;overflow:hidden;text-overflow:ellipsis}
+.b-freq{background:#f0fdf4;color:#166534}
+.b-bal{background:#fee2e2;color:#dc2626}
+.b-due{background:#fef3c7;color:#92400e}
+.b-ovd{background:#fee2e2;color:#dc2626}
 
-/* Round cards */
-.rounds-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:20px}
-.round-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:14px;cursor:pointer;transition:all 0.15s}
-.round-card:hover{border-color:var(--blue);background:var(--card2)}
-.round-card-name{font-size:14px;font-weight:600;margin-bottom:4px}
-.round-card-meta{font-size:11px;color:var(--text3);display:flex;gap:8px;flex-wrap:wrap}
-.round-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0;margin-top:2px}
+.btn{padding:6px 13px;border-radius:var(--r);font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--text);font-family:inherit;transition:all .15s;display:inline-flex;align-items:center;gap:5px}
+.btn:hover{background:var(--bg2)}
+.btn-nv{background:var(--navy);border-color:var(--navy);color:#fff}.btn-nv:hover{background:var(--navy2)}
+.btn-gn{background:var(--green);border-color:var(--green);color:#fff}
+.btn-rd{background:var(--red);border-color:var(--red);color:#fff;font-size:11px;padding:4px 9px}
+.btn-sm{padding:4px 9px;font-size:11px}
 
-/* Job detail panel */
-.detail-panel{position:fixed;right:0;top:0;bottom:0;width:420px;background:var(--bg2);border-left:1px solid var(--border);z-index:100;display:flex;flex-direction:column;transform:translateX(100%);transition:transform 0.25s ease}
-.detail-panel.open{transform:translateX(0)}
-.panel-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0}
-.panel-close{background:var(--bg3);border:none;color:var(--text2);font-size:16px;width:28px;height:28px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center}
-.panel-body{flex:1;overflow-y:auto;padding:20px}
-.panel-section{margin-bottom:20px}
-.panel-section-title{font-size:10px;font-weight:600;color:var(--text3);text-transform:uppercase;letter-spacing:0.8px;margin-bottom:10px}
-.detail-row{display:flex;padding:7px 0;border-bottom:1px solid var(--border)}
-.detail-row:last-child{border-bottom:none}
-.detail-key{font-size:12px;color:var(--text3);width:110px;flex-shrink:0}
-.detail-val{font-size:12px;color:var(--text);flex:1;word-break:break-word}
-.panel-actions{padding:16px 20px;border-top:1px solid var(--border);display:flex;gap:8px;flex-shrink:0}
+.vp{display:flex;flex-direction:column;height:calc(100vh - 81px)}
+.vp-tb{background:#fff;border-bottom:1px solid var(--border);padding:7px 14px;display:flex;align-items:center;gap:10px;flex-shrink:0;flex-wrap:wrap}
+.vp-map{flex:1;position:relative}
+#vpMap{width:100%;height:100%}
+.vp-leg{position:absolute;top:10px;right:10px;z-index:1000;background:#fff;border:1px solid var(--border);border-radius:var(--rl);padding:10px;max-height:calc(100vh - 130px);overflow-y:auto;min-width:150px;box-shadow:0 4px 12px rgba(0,0,0,.1)}
+.vp-lttl{font-size:10px;font-weight:700;color:var(--text2);text-transform:uppercase;letter-spacing:.5px;margin-bottom:7px}
+.lr{display:flex;align-items:center;gap:6px;padding:3px 0;cursor:pointer;font-size:12px}
+.lr.off{opacity:.35}
+.ldot{width:11px;height:11px;border-radius:50%;flex-shrink:0}
 
-/* Map */
-.map-container{border-radius:var(--radius-lg);overflow:hidden;border:1px solid var(--border)}
-#roundMap{height:340px;width:100%}
+.jw{display:flex;height:calc(100vh - 81px)}
+.jl{width:400px;flex-shrink:0;border-right:1px solid var(--border);overflow-y:auto;background:#fff;display:flex;flex-direction:column}
+.jlh{padding:9px 12px;border-bottom:1px solid var(--border);background:var(--bg2);flex-shrink:0}
+.jmap{flex:1;position:relative}
+#jsMap{width:100%;height:100%}
+.jli{padding:9px 12px;border-bottom:1px solid var(--border2);cursor:pointer}
+.jli:hover{background:#f0f4ff}
+.jli.sel{background:#dbeafe;border-left:3px solid var(--navy)}
+.jli-n{font-size:13px;font-weight:600;margin-bottom:1px}
+.jli-a{font-size:11px;color:var(--text3);margin-bottom:4px}
+.jli-m{display:flex;gap:4px;flex-wrap:wrap;align-items:center}
 
-/* Search results */
-.search-results{position:absolute;top:100%;left:0;right:0;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);z-index:200;max-height:320px;overflow-y:auto;margin-top:4px;display:none}
-.search-result-item{padding:10px 14px;cursor:pointer;border-bottom:1px solid var(--border);display:flex;flex-direction:column;gap:2px}
-.search-result-item:hover{background:var(--bg3)}
-.search-result-item:last-child{border-bottom:none}
-.sri-name{font-size:13px;font-weight:500}
-.sri-addr{font-size:11px;color:var(--text3)}
-.sri-meta{display:flex;gap:6px;margin-top:3px}
+.panel{position:fixed;right:0;top:81px;bottom:0;width:390px;background:#fff;border-left:1px solid var(--border);z-index:400;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .25s ease;box-shadow:-4px 0 20px rgba(0,0,0,.1)}
+.panel.open{transform:translateX(0)}
+.ph{padding:13px 15px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;background:var(--bg2)}
+.phx{background:var(--border);border:none;color:var(--text2);font-size:13px;width:24px;height:24px;border-radius:6px;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.pb{flex:1;overflow-y:auto;padding:14px}
+.pa{padding:11px 14px;border-top:1px solid var(--border);display:flex;gap:8px;background:var(--bg2)}
+.ps{margin-bottom:14px}
+.pst{font-size:10px;font-weight:700;color:var(--text3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:7px;padding-bottom:4px;border-bottom:1px solid var(--border2)}
+.dr{display:flex;padding:6px 0;border-bottom:1px solid var(--border2)}
+.dr:last-child{border-bottom:none}
+.dk{font-size:12px;color:var(--text3);width:95px;flex-shrink:0;font-weight:500}
+.dv{font-size:12px;color:var(--text);flex:1;word-break:break-word}
+.fg{margin-bottom:10px}
+.fl{font-size:10px;font-weight:700;color:var(--text2);margin-bottom:3px;display:block;text-transform:uppercase;letter-spacing:.3px}
+.fi{width:100%;padding:7px 9px;font-size:13px;border:1px solid var(--border);border-radius:var(--r);background:#fff;color:var(--text);font-family:inherit;outline:none}
+.fi:focus{border-color:var(--navy)}
+select.fi{cursor:pointer}
+textarea.fi{resize:vertical;min-height:52px}
+.fr{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 
-/* Loading */
-.loading{text-align:center;padding:48px;color:var(--text3)}
-.loading-spin{display:inline-block;width:24px;height:24px;border:2px solid var(--border);border-top-color:var(--blue);border-radius:50%;animation:spin 0.8s linear infinite;margin-bottom:8px}
-@keyframes spin{to{transform:rotate(360deg)}}
+.ft{padding:4px 10px;border-radius:20px;font-size:11px;font-weight:600;cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--text2);font-family:inherit;white-space:nowrap}
+.ft.on{background:var(--navy);border-color:var(--navy);color:#fff}
+.ft:hover:not(.on){background:var(--bg2)}
+.route-stop{padding:9px 12px;border-bottom:1px solid var(--border2);cursor:pointer;display:flex;align-items:center;gap:10px}
+.route-stop:hover{background:#f0f4ff}
+.route-stop.sel{background:#dbeafe;border-left:3px solid var(--navy)}
+.snum{width:24px;height:24px;border-radius:50%;background:var(--navy);color:#fff;font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sinfo{flex:1;min-width:0}
+.sname{font-size:13px;font-weight:600;margin-bottom:1px}
+.saddr{font-size:11px;color:var(--text3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sprice{font-size:12px;color:var(--green);font-weight:600;flex-shrink:0}
 
-/* Section header */
-.section-header{display:flex;align-items:center;gap:12px;margin-bottom:16px}
-.section-header h2{font-size:16px;font-weight:600;flex:1}
-
-/* Filter bar */
-.filter-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap}
-.filter-btn{padding:5px 12px;border-radius:20px;font-size:12px;cursor:pointer;border:1px solid var(--border);background:transparent;color:var(--text2);font-family:inherit;transition:all 0.15s;white-space:nowrap}
-.filter-btn.active{background:var(--blue);border-color:var(--blue);color:white}
-.filter-btn:hover{background:var(--bg3)}
-
-/* Split view */
-.split-view{display:grid;grid-template-columns:1fr 1fr;gap:16px;height:calc(100vh - 160px)}
-.split-left{overflow-y:auto}
-.split-right{display:flex;flex-direction:column;gap:12px}
-
-/* Toast */
-.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--green);color:white;padding:10px 20px;border-radius:10px;font-size:13px;font-weight:500;z-index:9999;opacity:0;transition:opacity 0.25s;pointer-events:none;white-space:nowrap}
+.ldg{text-align:center;padding:48px;color:var(--text3)}
+.spin{display:inline-block;width:22px;height:22px;border:2px solid var(--border);border-top-color:var(--navy);border-radius:50%;animation:sp .8s linear infinite;margin-bottom:8px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--green);color:#fff;padding:8px 18px;border-radius:var(--r);font-size:12px;font-weight:600;z-index:9999;opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;box-shadow:0 4px 12px rgba(0,0,0,.2)}
 .toast.show{opacity:1}
-.toast.error{background:var(--red)}
-
-/* Input */
-.form-input{width:100%;padding:8px 10px;font-size:13px;border:1px solid var(--border);border-radius:8px;background:var(--bg3);color:var(--text);font-family:inherit;outline:none}
-.form-input:focus{border-color:var(--blue)}
-select.form-input{cursor:pointer}
-.form-label{font-size:11px;font-weight:600;color:var(--text3);margin-bottom:4px;display:block;text-transform:uppercase;letter-spacing:0.3px}
-.form-group{margin-bottom:12px}
-.form-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-
-/* Due indicator */
-.due-today{color:var(--amber);font-weight:600}
-.due-overdue{color:var(--red);font-weight:600}
-.due-future{color:var(--text3)}
-
-/* Responsive */
-@media(max-width:768px){
-  .sidebar{display:none}
-  .stats-grid{grid-template-columns:repeat(2,1fr)}
-  .split-view{grid-template-columns:1fr;height:auto}
-  .detail-panel{width:100%}
-  .rounds-grid{grid-template-columns:repeat(2,1fr)}
-}
+.toast.err{background:var(--red)}
+@media(max-width:768px){.srow{grid-template-columns:repeat(2,1fr)}.jl{width:100%;height:50%}.jw{flex-direction:column}.panel{width:100%}.vp-leg{display:none}}
 </style>
 </head>
 <body>
 <div class="app">
-
-  <!-- Sidebar -->
-  <div class="sidebar">
-    <div class="sidebar-logo">
-      <h1>RouteFlow</h1>
-      <p>WCC Window Cleaning</p>
-    </div>
-    <div class="nav-section">Main</div>
-    <div class="nav-item active" onclick="showPage('dashboard',this)"><span class="icon">📊</span>Dashboard</div>
-    <div class="nav-item" onclick="showPage('rounds',this)"><span class="icon">🗺️</span>Rounds</div>
-    <div class="nav-item" onclick="showPage('jobs',this)"><span class="icon">📋</span>All Jobs</div>
-    <div class="nav-item" onclick="showPage('customers',this)"><span class="icon">👥</span>Customers</div>
-    <div class="nav-section">Finance</div>
-    <div class="nav-item" onclick="showPage('payments',this)"><span class="icon">💷</span>Payments</div>
-    <div class="nav-item" onclick="showPage('balances',this)"><span class="icon">⚠️</span>Balances</div>
-    <div class="sidebar-bottom">
-      <div class="operative-badge" onclick="showPage('dashboard',document.querySelector('.nav-item'))">
-        <div class="label">Viewing as</div>
-        <div class="name" id="viewingAs">All operatives</div>
+  <div class="topnav">
+    <div class="brand">Route<span>Flow</span></div>
+    <button class="nt on" onclick="gm('home',this)">Home</button>
+    <button class="nt" onclick="gm('planner',this)">Visual Planner</button>
+    <button class="nt" onclick="gm('rounds',this)">Rounds</button>
+    <button class="nt" onclick="gm('jobs',this)">Jobs</button>
+    <button class="nt" onclick="gm('debts',this)">Debts</button>
+    <button class="nt" onclick="gm('customers',this)">Customers</button>
+    <button class="nt" onclick="gm('payments',this)">Payments</button>
+    <div class="tnr"><div class="pill"><span class="dot" id="sd"></span><span id="sl">Connecting...</span></div></div>
+  </div>
+  <div class="subnav" id="sn">
+    <div class="snr">
+      <div class="sw">
+        <span class="sico">🔍</span>
+        <input class="si" id="gs" placeholder="Search customers..." oninput="doSrch(this.value)" onblur="setTimeout(()=>hideSR(),180)">
+        <div class="srd" id="sr"></div>
       </div>
     </div>
   </div>
-
-  <!-- Main area -->
-  <div class="main">
-    <div class="topbar">
-      <div class="topbar-title" id="pageTitle">Dashboard</div>
-      <div class="search-wrap">
-        <span class="search-icon">🔍</span>
-        <input class="search-input" id="globalSearch" placeholder="Search customers, addresses..." oninput="onSearch(this.value)" onblur="setTimeout(()=>hideSearch(),200)">
-        <div class="search-results" id="searchResults"></div>
-      </div>
-      <span class="sync-dot" id="syncDot" title="Connecting..."></span>
-      <span style="font-size:11px;color:var(--text3)" id="syncLabel">Connecting...</span>
-    </div>
-    <div class="content" id="pageContent">
-      <div class="loading"><div class="loading-spin"></div><br>Loading RouteFlow...</div>
-    </div>
-  </div>
-
+  <div class="page" id="pw"><div class="content" id="pc"><div class="ldg"><div class="spin"></div><br>Loading RouteFlow...</div></div></div>
 </div>
-
-<!-- Detail panel -->
-<div class="detail-panel" id="detailPanel">
-  <div class="panel-header">
-    <button class="panel-close" onclick="closePanel()">✕</button>
-    <div style="flex:1">
-      <div style="font-size:15px;font-weight:600" id="panelTitle">Job Detail</div>
-      <div style="font-size:11px;color:var(--text3)" id="panelSub"></div>
-    </div>
-    <div id="panelStatus"></div>
+<div class="panel" id="dp">
+  <div class="ph">
+    <button class="phx" onclick="cp()">✕</button>
+    <div style="flex:1"><div style="font-size:14px;font-weight:700" id="pt"></div><div style="font-size:11px;color:var(--text3)" id="ps2"></div></div>
+    <div id="pst2"></div>
   </div>
-  <div class="panel-body" id="panelBody"></div>
-  <div class="panel-actions" id="panelActions"></div>
+  <div class="pb" id="pb"></div>
+  <div class="pa" id="pa"></div>
 </div>
-
 <div class="toast" id="toast"></div>
-
 <script>
-const SB_URL='https://gpjvqxoxkltrtdbbuqjh.supabase.co';
-const SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdwanZxeG94a2x0cnRkYmJ1cWpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxMjc4MjMsImV4cCI6MjA5MTcwMzgyM30.oUpgF1oI83ux7zd9KFhxei49zR2g1Fz6kzGG7DM8QTM';
-const sb=supabase.createClient(SB_URL,SB_KEY);
+const SU='https://gpjvqxoxkltrtdbbuqjh.supabase.co';
+const SK='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImdwanZxeG94a2x0cnRkYmJ1cWpoIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzYxMjc4MjMsImV4cCI6MjA5MTcwMzgyM30.oUpgF1oI83ux7zd9KFhxei49zR2g1Fz6kzGG7DM8QTM';
+const sb=supabase.createClient(SU,SK);
+let AJ=[],AC=[],AR=[],AP=[];
+let mp='home',sp=0,vpF='active',jF='active',selJ=null;
+let vpMap=null,vpMk={},jsMap=null,jsMk={},hidR=new Set();
+const now=new Date(),tds=now.toISOString().split('T')[0];
+const yrS=tds.slice(0,4)+'-01-01',moS=tds.slice(0,7)+'-01';
+const wkD=now.getDay()||7,wkS2=new Date(now);wkS2.setDate(now.getDate()-wkD+1);
+const wkSs=wkS2.toISOString().split('T')[0];
+const RC=['#e91e8c','#2196F3','#FF5722','#4CAF50','#9C27B0','#FF9800','#00BCD4','#F44336','#3F51B5','#8BC34A','#009688','#FFC107','#673AB7','#03A9F4','#CDDC39','#795548','#607D8B','#FF6F00','#1565C0','#2E7D32','#AD1457','#6A1B9A','#00838F','#558B2F','#4527A0','#0277BD','#E65100','#37474F','#BF360C','#1A237E','#004D40','#827717','#311B92','#01579B','#33691E','#880E4F','#4E342E'];
+const CM={};
+function aRC(r){r.forEach((x,i)=>{CM[x.name]=RC[i%RC.length];});}
+function rc(n){return CM[n]||'#94a3b8';}
+function ss(s,l){document.getElementById('sd').className='dot '+s;document.getElementById('sl').textContent=l||s;}
+function toast(m,t='ok'){const e=document.getElementById('toast');e.textContent=m;e.className='toast show'+(t==='err'?' err':'');setTimeout(()=>e.className='toast',2400);}
+function gid(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6);}
+function sa(a){if(!a)return '—';return a.split(',').slice(0,2).join(',').trim();}
+function fl(f){const m={'1w':'Weekly','2w':'2-weekly','4w':'4-weekly','6w':'6-weekly','8w':'8-weekly','12w':'12-weekly','ad_hoc':'Ad hoc'};return m[f]||f||'—';}
+function wv(p,f){const v=parseFloat(p)||0;const m={'1w':1,'2w':.5,'4w':.25,'6w':1/6,'8w':.125,'12w':1/12,'ad_hoc':0};return v*(m[f]||0);}
+function fd(d){if(!d||d==='never')return '—';try{return new Date(d+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'2-digit'});}catch(e){return d;}}
+function fds(d){if(!d)return '';try{return new Date(d+'T12:00:00').toLocaleDateString('en-GB',{day:'numeric',month:'short'});}catch(e){return d;}}
+function dc(d){if(!d||d==='never')return '';if(d<tds)return 'b-ovd';if(d===tds)return 'b-due';return '';}
+function fop(a){if(!a)return 'Unknown';return a.split(',')[0].trim();}
+function cr2(f2,t2){const dly=AJ.filter(j=>j.status==='active').reduce((s,j)=>s+wv(j.price,j.frequency)/7,0);const f=new Date(f2),t=new Date(t2);return dly*((t-f)/864e5+1);}
 
-// State
-let allJobs=[], allCustomers=[], allRounds=[], allPayments=[];
-let currentPage='dashboard';
-let roundMap=null, roundMarkers=[];
-
-const today=new Date();
-const todayStr=today.toISOString().split('T')[0];
-
-// Operative colours
-const OP_COLOURS={'Nick Kennedy':'#3B82F6','Nick kennedy':'#3B82F6','Nick':'#3B82F6',
-  'Danny':'#10B981','danny':'#10B981',
-  'Jonny':'#F59E0B','Jonny Joe':'#F59E0B','Jonny andy':'#F59E0B','Jonny Andy':'#F59E0B','Jinny':'#F59E0B',
-  'Junior':'#8B5CF6',
-  'Jordan':'#EC4899',
-  'Austin':'#06B6D4','austin':'#06B6D4',
-  'Thierry':'#EF4444',
-  'Adam Steward':'#84CC16',
-  'Charlotte Hillas':'#F97316'};
-
-function opColour(name){
-  if(!name) return '#64748B';
-  const n=name.trim();
-  return OP_COLOURS[n]||'#64748B';
-}
-
-// ── Sync status
-function setSyncStatus(s,label){
-  const d=document.getElementById('syncDot');
-  const l=document.getElementById('syncLabel');
-  d.className='sync-dot '+s;
-  l.textContent=label||s;
-}
-
-function showToast(msg,type='ok'){
-  const t=document.getElementById('toast');
-  t.textContent=msg;
-  t.className='toast show'+(type==='error'?' error':'');
-  setTimeout(()=>t.className='toast',2500);
-}
-
-function genId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
-
-// ── Data loading
-async function loadAll(){
-  setSyncStatus('busy','Loading...');
+async function boot(){
+  ss('busy','Loading...');
   try{
-    const [jr,cr,rr,pr]=await Promise.all([
+    const[jr,cr,rr,pr]=await Promise.all([
       sb.from('jobs').select('*').order('customer_name'),
       sb.from('customers').select('*').order('name'),
       sb.from('rounds').select('*').order('name'),
       sb.from('payments').select('*').order('payment_date',{ascending:false})
     ]);
-    if(jr.error) throw jr.error;
-    if(cr.error) throw cr.error;
-    allJobs=jr.data||[];
-    allCustomers=cr.data||[];
-    allRounds=rr.data||[];
-    allPayments=pr.data||[];
-    setSyncStatus('ok',`${allJobs.length} jobs loaded`);
-    renderCurrentPage();
-  }catch(e){
-    setSyncStatus('err','Connection error');
-    showToast('Could not load data: '+e.message,'error');
+    if(jr.error)throw jr.error;
+    AJ=jr.data||[];AC=cr.data||[];AR=rr.data||[];AP=pr.data||[];
+    aRC(AR);ss('ok',AJ.length+' jobs');render();
+  }catch(e){ss('err','Error');toast('Load failed: '+e.message,'err');}
+}
+
+const SNAV={
+  home:['Overview','Activity','Valuation','Income Forecast','Profit & Loss'],
+  planner:[],rounds:[],jobs:['All Jobs','Active','Inactive','Prospects','Overdue'],
+  debts:['Owing','Payment Risks'],customers:['All Customers'],payments:['All Payments','Record Payment']
+};
+
+function gm(page,el){
+  mp=page;sp=0;
+  document.querySelectorAll('.nt').forEach(t=>t.classList.remove('on'));
+  el.classList.add('on');
+  bSN();cp();render();
+}
+
+function bSN(){
+  const tabs=SNAV[mp]||[];
+  const sn=document.getElementById('sn');
+  sn.querySelectorAll('.st').forEach(e=>e.remove());
+  const snr=sn.querySelector('.snr');
+  tabs.forEach((lbl,i)=>{
+    const b=document.createElement('button');
+    b.className='st'+(i===0?' on':'');
+    b.textContent=lbl;
+    b.onclick=()=>{sp=i;sn.querySelectorAll('.st').forEach(t=>t.classList.remove('on'));b.classList.add('on');render();};
+    sn.insertBefore(b,snr);
+  });
+}
+
+function render(){
+  const pw=document.getElementById('pw'),pc=document.getElementById('pc');
+  if(mp==='planner'||mp==='jobs'||mp==='rounds'){
+    pw.style.overflow='hidden';pc.style.padding='0';pc.style.overflow='hidden';pc.style.height='100%';
+    if(mp==='planner') rPlanner(pc); else if(mp==='rounds') rRounds(pc); else rJobs(pc);
+  } else {
+    pw.style.overflow='';pc.style.padding='18px';pc.style.overflow='';pc.style.height='';
+    if(mp==='home') rHome(pc);
+    else if(mp==='debts') rDebts(pc);
+    else if(mp==='customers') rCusts(pc);
+    else if(mp==='payments') rPays(pc);
   }
 }
 
-// ── Navigation
-function showPage(page,el){
-  currentPage=page;
-  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
-  if(el) el.classList.add('active');
-  closePanel();
-  renderCurrentPage();
+function rHome(c){
+  if(sp===0) rOv(c);
+  else if(sp===1) rAct(c);
+  else if(sp===2) rVal(c);
+  else if(sp===3) rFc(c);
+  else rPL(c);
 }
 
-function renderCurrentPage(){
-  const titles={dashboard:'Dashboard',rounds:'Rounds',jobs:'All Jobs',customers:'Customers',payments:'Payments',balances:'Outstanding Balances'};
-  document.getElementById('pageTitle').textContent=titles[currentPage]||currentPage;
-  const c=document.getElementById('pageContent');
-  if(currentPage==='dashboard') renderDashboard(c);
-  else if(currentPage==='rounds') renderRounds(c);
-  else if(currentPage==='jobs') renderJobsList(c);
-  else if(currentPage==='customers') renderCustomers(c);
-  else if(currentPage==='payments') renderPayments(c);
-  else if(currentPage==='balances') renderBalances(c);
-}
-
-// ── DASHBOARD
-function renderDashboard(c){
-  const active=allJobs.filter(j=>j.status==='active');
-  const todayJobs=allJobs.filter(j=>j.next_due===todayStr);
-  const overdue=allJobs.filter(j=>j.next_due&&j.next_due<todayStr&&j.status==='active');
-  const withBalance=allJobs.filter(j=>parseFloat(j.balance||0)>0);
-  const totalBalance=withBalance.reduce((s,j)=>s+(parseFloat(j.balance)||0),0);
-  const weeklyRev=active.reduce((s,j)=>s+weeklyValue(j.price,j.frequency),0);
-  const monthlyRev=weeklyRev*4.33;
-  const annualRev=weeklyRev*52;
-
-  // Jobs by operative
+function rOv(c){
+  const act=AJ.filter(j=>j.status==='active');
+  const wk=act.reduce((s,j)=>s+wv(j.price,j.frequency),0);
+  const mo=wk*4.33,yr=wk*52;
+  const ovd=AJ.filter(j=>j.next_due&&j.next_due<tds&&j.status==='active');
+  const owg=AJ.filter(j=>parseFloat(j.balance||0)>0);
+  const tot=owg.reduce((s,j)=>s+(parseFloat(j.balance)||0),0);
+  const yest=new Date(now);yest.setDate(now.getDate()-1);const ys=yest.toISOString().split('T')[0];
+  const lws=new Date(wkS2);lws.setDate(lws.getDate()-7);const lwe=new Date(wkS2);lwe.setDate(lwe.getDate()-1);
+  const lms=new Date(now.getFullYear(),now.getMonth()-1,1).toISOString().split('T')[0];
+  const lme=new Date(now.getFullYear(),now.getMonth(),0).toISOString().split('T')[0];
+  const lyS=(now.getFullYear()-1)+'-01-01',lySE=(now.getFullYear()-1)+tds.slice(4);
   const byOp={};
-  active.forEach(j=>{
-    const ops=normaliseOp(j.assignee||j.source||'Unknown');
-    ops.forEach(op=>{
-      if(!byOp[op]) byOp[op]={count:0,monthly:0};
-      byOp[op].count++;
-      byOp[op].monthly+=weeklyValue(j.price,j.frequency)*4.33;
-    });
-  });
-  const opList=Object.entries(byOp).sort((a,b)=>b[1].monthly-a[1].monthly).slice(0,8);
-
-  // Jobs due this week
-  const weekEnd=new Date(today); weekEnd.setDate(today.getDate()+7);
-  const dueThisWeek=allJobs.filter(j=>{
-    if(!j.next_due||j.status!=='active') return false;
-    const d=new Date(j.next_due);
-    return d>=today && d<=weekEnd;
-  });
-
+  act.forEach(j=>{const op=fop(j.assignee||j.source||'?');if(!byOp[op]){byOp[op]={c:0,m:0};}byOp[op].c++;byOp[op].m+=wv(j.price,j.frequency)*4.33;});
+  const ops=Object.entries(byOp).sort((a,b)=>b[1].m-a[1].m);
+  const due=AJ.filter(j=>j.next_due===tds);
   c.innerHTML=`
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-label">Active jobs</div>
-        <div class="stat-value blue">${active.length}</div>
-        <div class="stat-sub">${allJobs.filter(j=>j.status==='inactive').length} inactive · ${allJobs.filter(j=>j.status==='prospect').length} prospects</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Monthly revenue</div>
-        <div class="stat-value green">£${monthlyRev.toFixed(0)}</div>
-        <div class="stat-sub">£${annualRev.toFixed(0)}/year projected</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Overdue jobs</div>
-        <div class="stat-value ${overdue.length>0?'red':'green'}">${overdue.length}</div>
-        <div class="stat-sub">${todayJobs.length} due today</div>
-      </div>
-      <div class="stat-card">
-        <div class="stat-label">Outstanding balance</div>
-        <div class="stat-value ${totalBalance>0?'amber':'green'}">£${totalBalance.toFixed(2)}</div>
-        <div class="stat-sub">${withBalance.length} customers owe money</div>
+  <div class="srow">
+    <div class="sc"><div class="sl">Active jobs</div><div class="sv nv">${act.length}</div><div class="ss">${AJ.filter(j=>j.status==='inactive').length} inactive · ${AJ.filter(j=>j.status==='prospect').length} prospects</div></div>
+    <div class="sc"><div class="sl">Monthly recurring</div><div class="sv gn">£${mo.toFixed(0)}</div><div class="ss">£${yr.toFixed(0)}/yr projected</div></div>
+    <div class="sc"><div class="sl">Overdue</div><div class="sv ${ovd.length?'rd':'gn'}">${ovd.length}</div><div class="ss">${due.length} due today</div></div>
+    <div class="sc"><div class="sl">Outstanding</div><div class="sv ${tot>0?'am':'gn'}">£${tot.toFixed(2)}</div><div class="ss">${owg.length} customers</div></div>
+  </div>
+  <div style="display:flex;gap:16px;flex-wrap:wrap;align-items:flex-start">
+    <div class="sumcard" style="min-width:290px">
+      <div class="sumhdr">📊 Summary <select style="font-size:12px;padding:2px 6px;border:1px solid var(--border);border-radius:4px"><option>Sales</option></select></div>
+      <div class="sumgrid">
+        <div class="sumc"><div class="sumc-l">Today</div><div class="sumc-v">£${cr2(tds,tds).toFixed(2)}</div></div>
+        <div class="sumc"><div class="sumc-l">Yesterday</div><div class="sumc-v">£${cr2(ys,ys).toFixed(2)}</div></div>
+        <div class="sumc"><div class="sumc-l">This Week</div><div class="sumc-v">£${cr2(wkSs,tds).toFixed(2)}</div></div>
+        <div class="sumc"><div class="sumc-l">Last Week</div><div class="sumc-v">£${cr2(lws.toISOString().split('T')[0],lwe.toISOString().split('T')[0]).toFixed(2)}</div></div>
+        <div class="sumc"><div class="sumc-l">This Month</div><div class="sumc-v">£${cr2(moS,tds).toFixed(2)}</div></div>
+        <div class="sumc"><div class="sumc-l">Last Month</div><div class="sumc-v">£${cr2(lms,lme).toFixed(2)}</div></div>
+        <div class="sumc"><div class="sumc-l">This Year So Far</div><div class="sumc-s">${tds.slice(0,4)} Jan – ${fds(tds)}</div><div class="sumc-v">£${cr2(yrS,tds).toFixed(2)}</div></div>
+        <div class="sumc"><div class="sumc-l">This Time Last Year</div><div class="sumc-s">${now.getFullYear()-1} Jan – ${fds(lySE)}</div><div class="sumc-v">£${cr2(lyS,lySE).toFixed(2)}</div></div>
       </div>
     </div>
-
-    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
-      <div class="card">
-        <div class="section-header"><h2>By operative</h2></div>
-        ${opList.map(([op,data])=>`
-          <div style="display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--border)">
-            <div style="width:8px;height:8px;border-radius:50%;background:${opColour(op)};flex-shrink:0"></div>
-            <span style="font-size:13px;flex:1">${op}</span>
-            <span style="font-size:11px;color:var(--text3)">${data.count} jobs</span>
-            <span style="font-size:13px;font-weight:600;color:var(--green);min-width:70px;text-align:right">£${data.monthly.toFixed(0)}/mo</span>
-          </div>`).join('')}
+    <div style="flex:1;min-width:280px;display:flex;flex-direction:column;gap:14px">
+      <div class="tc">
+        <div class="tch"><span class="tct">By operative</span></div>
+        <div class="tw"><table><thead><tr><th>Operative</th><th>Jobs</th><th>Monthly</th><th>Annual</th></tr></thead><tbody>
+          ${ops.map(([op,d])=>`<tr><td style="font-weight:600">${op}</td><td>${d.c}</td><td style="color:var(--green);font-weight:600">£${d.m.toFixed(0)}</td><td style="color:var(--green)">£${(d.m*12).toFixed(0)}</td></tr>`).join('')}
+        </tbody></table></div>
       </div>
-      <div class="card">
-        <div class="section-header"><h2>Due this week <span style="font-size:12px;color:var(--text3);font-weight:400">(${dueThisWeek.length} jobs)</span></h2></div>
-        <div style="max-height:260px;overflow-y:auto">
-          ${dueThisWeek.length?dueThisWeek.slice(0,20).map(j=>`
-            <div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);cursor:pointer" onclick="openJobPanel('${j.id}')">
-              <div>
-                <div style="font-size:12px;font-weight:500">${j.customer_name}</div>
-                <div style="font-size:11px;color:var(--text3)">${shortAddr(j.address)}</div>
-              </div>
-              <div style="margin-left:auto;text-align:right">
-                <div class="badge ${dueClass(j.next_due)}">${fmtDate(j.next_due)}</div>
-                <div style="font-size:11px;color:var(--green);margin-top:2px">£${j.price}</div>
-              </div>
-            </div>`).join('')
-          :'<div style="color:var(--text3);font-size:13px;padding:16px 0;text-align:center">No jobs due this week</div>'}
-        </div>
+      <div class="tc">
+        <div class="tch"><span class="tct">Due today (${due.length})</span><button class="btn btn-sm" onclick="gm('jobs',document.querySelectorAll('.nt')[2])">All jobs</button></div>
+        ${due.length?`<div class="tw"><table><thead><tr><th>Customer</th><th>Round</th><th>Price</th><th>Status</th></tr></thead><tbody>
+          ${due.slice(0,8).map(j=>`<tr onclick="ojp('${j.id}')"><td style="font-weight:500">${j.customer_name}</td><td><span class="b b-round">${j.round_name||'—'}</span></td><td style="color:var(--green);font-weight:600">£${j.price}</td><td><span class="b b-${j.status}">${j.status}</span></td></tr>`).join('')}
+        </tbody></table></div>`:'<div style="padding:14px;text-align:center;color:var(--text3)">No jobs due today</div>'}
       </div>
     </div>
-
-    <div class="card">
-      <div class="section-header">
-        <h2>Recent activity</h2>
-        <button class="btn btn-sm" onclick="showPage('jobs',document.querySelectorAll('.nav-item')[2])">View all jobs</button>
-      </div>
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Customer</th><th>Address</th><th>Round</th><th>Assignee</th><th>Price</th><th>Frequency</th><th>Next due</th><th>Status</th></tr></thead>
-          <tbody>
-            ${allJobs.filter(j=>j.status==='active').slice(0,15).map(j=>`
-              <tr style="cursor:pointer" onclick="openJobPanel('${j.id}')">
-                <td><span style="font-weight:500">${j.customer_name||'—'}</span></td>
-                <td style="color:var(--text3);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${shortAddr(j.address)}</td>
-                <td><span class="badge badge-round">${j.round_name||'—'}</span></td>
-                <td><span style="font-size:11px;color:${opColour(firstOp(j.assignee))}">${firstOp(j.assignee)}</span></td>
-                <td style="font-weight:600;color:var(--green)">£${j.price||0}</td>
-                <td><span class="badge badge-freq">${freqLabel(j.frequency)}</span></td>
-                <td class="${dueClass(j.next_due)}">${fmtDate(j.next_due)}</td>
-                <td><span class="badge badge-${j.status}">${j.status}</span></td>
-              </tr>`).join('')}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  `;
+  </div>`;
 }
 
-// ── ROUNDS
-function renderRounds(c){
-  const rounds=allRounds.sort((a,b)=>a.name.localeCompare(b.name));
-  const jobsByRound={};
-  allJobs.forEach(j=>{
-    const r=j.round_name||'Unknown';
-    if(!jobsByRound[r]) jobsByRound[r]={jobs:[],active:0,monthly:0};
-    jobsByRound[r].jobs.push(j);
-    if(j.status==='active'){
-      jobsByRound[r].active++;
-      jobsByRound[r].monthly+=weeklyValue(j.price,j.frequency)*4.33;
-    }
-  });
+function rAct(c){
+  const r=AJ.filter(j=>j.last_done).sort((a,b)=>b.last_done.localeCompare(a.last_done)).slice(0,40);
+  c.innerHTML=`<div class="tc"><div class="tch"><span class="tct">Recent activity</span></div><div class="tw"><table><thead><tr><th>Customer</th><th>Address</th><th>Round</th><th>Price</th><th>Last done</th><th>Next due</th></tr></thead><tbody>
+    ${r.map(j=>`<tr onclick="ojp('${j.id}')"><td style="font-weight:500">${j.customer_name}</td><td style="color:var(--text3);font-size:12px">${sa(j.address)}</td><td><span class="b b-round">${j.round_name||'—'}</span></td><td style="color:var(--green);font-weight:600">£${j.price}</td><td>${fd(j.last_done)}</td><td class="${dc(j.next_due)}">${fd(j.next_due)}</td></tr>`).join('')}
+  </tbody></table></div></div>`;
+}
 
+function rVal(c){
+  const act=AJ.filter(j=>j.status==='active');
+  const byR={};
+  act.forEach(j=>{const r=j.round_name||'Unassigned';if(!byR[r]){byR[r]={c:0,m:0};}byR[r].c++;byR[r].m+=wv(j.price,j.frequency)*4.33;});
+  const rs=Object.entries(byR).sort((a,b)=>b[1].m-a[1].m);
+  const tm=act.reduce((s,j)=>s+wv(j.price,j.frequency)*4.33,0);
   c.innerHTML=`
-    <div class="section-header">
-      <h2>All rounds <span style="font-size:13px;color:var(--text3);font-weight:400">(${rounds.length})</span></h2>
+    <div class="srow" style="grid-template-columns:repeat(3,1fr)">
+      <div class="sc"><div class="sl">Monthly recurring</div><div class="sv gn">£${tm.toFixed(2)}</div></div>
+      <div class="sc"><div class="sl">Annual recurring</div><div class="sv gn">£${(tm*12).toFixed(2)}</div></div>
+      <div class="sc"><div class="sl">Active jobs</div><div class="sv nv">${act.length}</div></div>
     </div>
-    <div class="rounds-grid">
-      ${rounds.map(r=>{
-        const data=jobsByRound[r.name]||{active:0,monthly:0,jobs:[]};
-        return `<div class="round-card" onclick="openRound('${encodeURIComponent(r.name)}')">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
-            <div class="round-dot" style="background:${r.colour||'#64748B'}"></div>
-            <div class="round-card-name">${r.name}</div>
-          </div>
-          <div class="round-card-meta">
-            <span>${data.active} active jobs</span>
-            <span style="color:var(--green)">£${data.monthly.toFixed(0)}/mo</span>
-          </div>
-          ${r.operative?`<div style="margin-top:6px"><span style="font-size:10px;color:${opColour(r.operative)}">${r.operative}</span></div>`:''}
-        </div>`;
-      }).join('')}
-    </div>
-    <div id="roundDetail"></div>
-  `;
+    <div class="tc"><div class="tch"><span class="tct">Valuation by round</span></div><div class="tw"><table><thead><tr><th>Round</th><th>Jobs</th><th>Monthly</th><th>Annual</th><th>Share</th></tr></thead><tbody>
+      ${rs.map(([n,d])=>`<tr><td><span class="b b-round">${n}</span></td><td>${d.c}</td><td style="color:var(--green);font-weight:600">£${d.m.toFixed(2)}</td><td style="color:var(--green)">£${(d.m*12).toFixed(2)}</td><td><div style="display:flex;align-items:center;gap:5px"><div style="flex:1;background:var(--border);border-radius:3px;height:5px"><div style="width:${Math.min(100,d.m/tm*100).toFixed(0)}%;height:5px;background:var(--navy);border-radius:3px"></div></div><span style="font-size:10px;color:var(--text3)">${(d.m/tm*100).toFixed(0)}%</span></div></td></tr>`).join('')}
+    </tbody></table></div></div>`;
 }
 
-function openRound(nameEnc){
-  const name=decodeURIComponent(nameEnc);
-  const jobs=allJobs.filter(j=>j.round_name===name);
-  const active=jobs.filter(j=>j.status==='active');
-  const monthly=active.reduce((s,j)=>s+weeklyValue(j.price,j.frequency)*4.33,0);
-  const round=allRounds.find(r=>r.name===name)||{};
-
-  const el=document.getElementById('roundDetail');
-  if(!el) return;
-
-  el.innerHTML=`
-    <div class="section-header" style="margin-top:8px">
-      <h2>${name}</h2>
-      <span style="font-size:12px;color:var(--text3)">${active.length} active · £${monthly.toFixed(0)}/mo</span>
-    </div>
-    <div class="split-view">
-      <div class="split-left">
-        <div class="card-sm" style="margin-bottom:12px">
-          <table style="width:100%;font-size:13px;border-collapse:collapse">
-            <thead><tr><th style="padding:6px 8px;text-align:left;color:var(--text3);font-size:11px;border-bottom:1px solid var(--border)">Customer</th><th style="padding:6px 8px;text-align:left;color:var(--text3);font-size:11px;border-bottom:1px solid var(--border)">Address</th><th style="padding:6px 8px;text-align:left;color:var(--text3);font-size:11px;border-bottom:1px solid var(--border)">Price</th><th style="padding:6px 8px;text-align:left;color:var(--text3);font-size:11px;border-bottom:1px solid var(--border)">Next due</th><th style="padding:6px 8px;text-align:left;color:var(--text3);font-size:11px;border-bottom:1px solid var(--border)">Status</th></tr></thead>
-            <tbody>
-              ${jobs.map(j=>`
-                <tr style="cursor:pointer" onclick="openJobPanel('${j.id}')">
-                  <td style="padding:7px 8px;border-bottom:1px solid var(--border);font-weight:500">${j.customer_name||'—'}</td>
-                  <td style="padding:7px 8px;border-bottom:1px solid var(--border);color:var(--text3);font-size:12px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${shortAddr(j.address)}</td>
-                  <td style="padding:7px 8px;border-bottom:1px solid var(--border);color:var(--green);font-weight:600">£${j.price||0}</td>
-                  <td style="padding:7px 8px;border-bottom:1px solid var(--border)" class="${dueClass(j.next_due)}">${fmtDate(j.next_due)}</td>
-                  <td style="padding:7px 8px;border-bottom:1px solid var(--border)"><span class="badge badge-${j.status}">${j.status}</span></td>
-                </tr>`).join('')}
-            </tbody>
-          </table>
-        </div>
-      </div>
-      <div class="split-right">
-        <div class="map-container"><div id="roundMap"></div></div>
-        <div class="card-sm">
-          <div style="font-size:11px;color:var(--text3);margin-bottom:8px;text-transform:uppercase;letter-spacing:0.5px">Round summary</div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-            <div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3)">Active</div><div style="font-size:18px;font-weight:700;color:var(--blue)">${active.length}</div></div>
-            <div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3)">Monthly</div><div style="font-size:18px;font-weight:700;color:var(--green)">£${monthly.toFixed(0)}</div></div>
-            <div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3)">Annual</div><div style="font-size:18px;font-weight:700;color:var(--green)">£${(monthly*12).toFixed(0)}</div></div>
-            <div style="background:var(--bg3);border-radius:8px;padding:10px"><div style="font-size:10px;color:var(--text3)">Inactive</div><div style="font-size:18px;font-weight:700;color:var(--text3)">${jobs.filter(j=>j.status==='inactive').length}</div></div>
-          </div>
-        </div>
-      </div>
-    </div>
-  `;
-
-  // Init map
-  setTimeout(()=>initRoundMap(jobs.filter(j=>j.lat&&j.lng)),100);
-  el.scrollIntoView({behavior:'smooth'});
+function rFc(c){
+  const mo=AJ.filter(j=>j.status==='active').reduce((s,j)=>s+wv(j.price,j.frequency)*4.33,0);
+  const ms=['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const cm=now.getMonth();
+  c.innerHTML=`<div class="tc"><div class="tch"><span class="tct">12-month income forecast</span></div><div class="tw"><table><thead><tr><th>Month</th><th>Projected income</th><th>Cumulative</th></tr></thead><tbody>
+    ${ms.map((m,i)=>{const idx=(cm+i)%12;const yr=now.getFullYear()+(cm+i>=12?1:0);return `<tr><td style="font-weight:500">${ms[idx]} ${yr}</td><td style="color:var(--green);font-weight:600">£${mo.toFixed(2)}</td><td style="color:var(--text3)">£${(mo*(i+1)).toFixed(2)}</td></tr>`;}).join('')}
+  </tbody></table></div></div>`;
 }
 
-function initRoundMap(jobs){
-  if(roundMap){roundMap.remove();roundMap=null;}
-  roundMap=L.map('roundMap').setView([54.0,-1.5],10);
-  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{
-    attribution:'© OpenStreetMap © CARTO',subdomains:'abcd',maxZoom:19
-  }).addTo(roundMap);
+function rPL(c){
+  const mo=AJ.filter(j=>j.status==='active').reduce((s,j)=>s+wv(j.price,j.frequency)*4.33,0);
+  c.innerHTML=`<div class="tc"><div class="tch"><span class="tct">Profit & Loss</span></div><div style="padding:28px;text-align:center;color:var(--text3)"><div style="font-size:36px;font-weight:700;color:var(--green);margin-bottom:6px">£${mo.toFixed(2)}/mo</div><div style="font-size:14px">£${(mo*12).toFixed(2)} annually projected</div><div style="margin-top:14px;font-size:12px">Add expenses in settings to see full P&L</div></div></div>`;
+}
 
-  if(!jobs.length){roundMap.setView([54.0,-1.5],8);return;}
+function rPlanner(c){
+  const mapped=AJ.filter(j=>j.lat&&j.lng).length;
+  c.innerHTML=`<div class="vp">
+    <div class="vp-tb">
+      <span style="font-size:13px;font-weight:600;color:var(--text2)">Visual Planner</span>
+      <div style="display:flex;gap:4px;flex-wrap:wrap">
+        <button class="ft ${vpF==='all'?'on':''}" onclick="svf('all',this)">All (${AJ.length})</button>
+        <button class="ft ${vpF==='active'?'on':''}" onclick="svf('active',this)">Active (${AJ.filter(j=>j.status==='active').length})</button>
+        <button class="ft ${vpF==='overdue'?'on':''}" onclick="svf('overdue',this)">Overdue (${AJ.filter(j=>j.next_due&&j.next_due<tds&&j.status==='active').length})</button>
+        <button class="ft ${vpF==='today'?'on':''}" onclick="svf('today',this)">Due today (${AJ.filter(j=>j.next_due===tds).length})</button>
+      </div>
+      <button class="btn btn-sm btn-nv" id="gcBtn" onclick="doGeo()">📍 Map unmapped (${AJ.length-mapped})</button>
+      <span style="font-size:11px;color:var(--text3)" id="mc">${mapped}/${AJ.length} mapped</span>
+    </div>
+    <div class="vp-map"><div id="vpMap"></div><div class="vp-leg" id="vpl"></div></div>
+  </div>`;
+  setTimeout(()=>{initVP();bLeg();},60);
+}
 
+function svf(f,el){vpF=f;document.querySelectorAll('.ft').forEach(t=>t.classList.remove('on'));el.classList.add('on');rfVP();}
+
+function initVP(){
+  if(vpMap){vpMap.remove();vpMap=null;vpMk={};}
+  vpMap=L.map('vpMap').setView([54.1,-1.55],8);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap © CARTO',subdomains:'abcd',maxZoom:19}).addTo(vpMap);
+  rfVP();
+}
+
+function rfVP(){
+  if(!vpMap)return;
+  Object.values(vpMk).forEach(m=>vpMap.removeLayer(m));vpMk={};
+  let jobs=AJ.filter(j=>j.lat&&j.lng);
+  if(vpF==='active')jobs=jobs.filter(j=>j.status==='active');
+  else if(vpF==='overdue')jobs=jobs.filter(j=>j.next_due&&j.next_due<tds&&j.status==='active');
+  else if(vpF==='today')jobs=jobs.filter(j=>j.next_due===tds);
   const bounds=[];
   jobs.forEach(j=>{
-    const colour=j.status==='active'?'#10B981':'#64748B';
-    const icon=L.divIcon({
-      html:`<div style="width:22px;height:22px;border-radius:50% 50% 50% 0;background:${colour};transform:rotate(-45deg);border:2px solid white;box-shadow:0 2px 4px rgba(0,0,0,0.4)"></div>`,
-      iconSize:[22,22],iconAnchor:[11,22],className:''
-    });
-    const m=L.marker([j.lat,j.lng],{icon}).addTo(roundMap);
-    m.bindPopup(`<b>${j.customer_name}</b><br>${j.address}<br>£${j.price} · ${freqLabel(j.frequency)}`);
-    bounds.push([j.lat,j.lng]);
+    if(hidR.has(j.round_name))return;
+    const col=rc(j.round_name);
+    const ic=L.divIcon({html:`<div style="width:20px;height:26px"><div style="width:20px;height:20px;border-radius:50% 50% 50% 0;background:${col};transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 2px 5px rgba(0,0,0,.35)"></div></div>`,iconSize:[20,26],iconAnchor:[10,26],className:''});
+    const m=L.marker([j.lat,j.lng],{icon:ic}).addTo(vpMap);
+    m.bindPopup(`<b>${j.customer_name}</b><br><span style="font-size:11px">${j.address}</span><br><b style="color:#16a34a">£${j.price}</b> · ${fl(j.frequency)}<br><span style="font-size:11px">${j.round_name||'—'} · Next: ${fd(j.next_due)}</span>`);
+    m.on('click',()=>ojp(j.id));
+    vpMk[j.id]=m;bounds.push([j.lat,j.lng]);
   });
-  if(bounds.length) roundMap.fitBounds(bounds,{padding:[20,20]});
+  if(bounds.length>1)vpMap.fitBounds(bounds,{padding:[40,40],maxZoom:13});
 }
 
-// ── ALL JOBS
-let jobsFilter='all';
-function renderJobsList(c){
-  let filtered=allJobs;
-  if(jobsFilter!=='all') filtered=allJobs.filter(j=>j.status===jobsFilter);
-
-  c.innerHTML=`
-    <div class="section-header">
-      <h2>All jobs <span style="font-size:13px;color:var(--text3);font-weight:400">(${filtered.length})</span></h2>
-      <button class="btn btn-primary btn-sm" onclick="openAddJobPanel()">+ Add job</button>
-    </div>
-    <div class="filter-bar">
-      <button class="filter-btn ${jobsFilter==='all'?'active':''}" onclick="setJobsFilter('all',this)">All (${allJobs.length})</button>
-      <button class="filter-btn ${jobsFilter==='active'?'active':''}" onclick="setJobsFilter('active',this)">Active (${allJobs.filter(j=>j.status==='active').length})</button>
-      <button class="filter-btn ${jobsFilter==='inactive'?'active':''}" onclick="setJobsFilter('inactive',this)">Inactive (${allJobs.filter(j=>j.status==='inactive').length})</button>
-      <button class="filter-btn ${jobsFilter==='prospect'?'active':''}" onclick="setJobsFilter('prospect',this)">Prospects (${allJobs.filter(j=>j.status==='prospect').length})</button>
-    </div>
-    <div class="card" style="padding:0">
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Customer</th><th>Address</th><th>Round</th><th>Assignee</th><th>Price</th><th>Frequency</th><th>Last done</th><th>Next due</th><th>Balance</th><th>Status</th></tr></thead>
-          <tbody>
-            ${filtered.map(j=>`
-              <tr style="cursor:pointer" onclick="openJobPanel('${j.id}')">
-                <td style="font-weight:500;white-space:nowrap">${j.customer_name||'—'}</td>
-                <td style="color:var(--text3);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:12px">${shortAddr(j.address)}</td>
-                <td><span class="badge badge-round">${j.round_name||'—'}</span></td>
-                <td><span style="font-size:11px;color:${opColour(firstOp(j.assignee))}">${firstOp(j.assignee)}</span></td>
-                <td style="font-weight:600;color:var(--green)">£${j.price||0}</td>
-                <td><span class="badge badge-freq">${freqLabel(j.frequency)}</span></td>
-                <td style="color:var(--text3);font-size:12px">${fmtDate(j.last_done)}</td>
-                <td class="${dueClass(j.next_due)}">${fmtDate(j.next_due)}</td>
-                <td>${parseFloat(j.balance||0)>0?`<span class="badge badge-balance">£${parseFloat(j.balance).toFixed(2)}</span>`:'—'}</td>
-                <td><span class="badge badge-${j.status}">${j.status}</span></td>
-              </tr>`).join('')}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  `;
+function bLeg(){
+  const el=document.getElementById('vpl');if(!el)return;
+  const rounds=AR.filter(r=>AJ.some(j=>j.round_name===r.name&&j.lat&&j.lng));
+  el.innerHTML=`<div class="vp-lttl">Rounds (${rounds.length})</div>`+
+    rounds.map(r=>`<div class="lr ${hidR.has(r.name)?'off':''}" onclick="togR('${r.name}')"><div class="ldot" style="background:${rc(r.name)}"></div><span>${r.name}</span></div>`).join('');
 }
 
-function setJobsFilter(f,el){
-  jobsFilter=f;
-  renderJobsList(document.getElementById('pageContent'));
-}
+function togR(n){hidR.has(n)?hidR.delete(n):hidR.add(n);bLeg();rfVP();}
 
-// ── CUSTOMERS
-function renderCustomers(c){
-  c.innerHTML=`
-    <div class="section-header">
-      <h2>Customers <span style="font-size:13px;color:var(--text3);font-weight:400">(${allCustomers.length})</span></h2>
-    </div>
-    <div class="card" style="padding:0">
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Name</th><th>Address</th><th>Phone</th><th>Email</th><th>Balance</th><th>Status</th><th>Jobs</th></tr></thead>
-          <tbody>
-            ${allCustomers.map(cu=>{
-              const custJobs=allJobs.filter(j=>j.customer_id===cu.id);
-              return `<tr style="cursor:pointer" onclick="openCustomerPanel('${cu.id}')">
-                <td style="font-weight:500">${cu.name||'—'}</td>
-                <td style="color:var(--text3);font-size:12px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${shortAddr(cu.address)}</td>
-                <td style="color:var(--text3);font-size:12px">${cu.phone||'—'}</td>
-                <td style="color:var(--text3);font-size:12px;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${cu.email||'—'}</td>
-                <td>${parseFloat(cu.balance||0)>0?`<span class="badge badge-balance">£${parseFloat(cu.balance).toFixed(2)}</span>`:'—'}</td>
-                <td><span class="badge badge-${cu.status||'active'}">${cu.status||'active'}</span></td>
-                <td style="color:var(--text3)">${custJobs.length}</td>
-              </tr>`;
-            }).join('')}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  `;
-}
-
-// ── PAYMENTS
-function renderPayments(c){
-  c.innerHTML=`
-    <div class="section-header">
-      <h2>Payments <span style="font-size:13px;color:var(--text3);font-weight:400">(${allPayments.length})</span></h2>
-      <button class="btn btn-primary btn-sm" onclick="openAddPaymentPanel()">+ Record payment</button>
-    </div>
-    ${allPayments.length?`
-    <div class="card" style="padding:0">
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Date</th><th>Customer</th><th>Amount</th><th>Method</th><th>Notes</th></tr></thead>
-          <tbody>
-            ${allPayments.map(p=>`
-              <tr>
-                <td style="color:var(--text3);font-size:12px">${fmtDate(p.payment_date)}</td>
-                <td>${p.customer_id||'—'}</td>
-                <td style="font-weight:600;color:var(--green)">£${parseFloat(p.amount||0).toFixed(2)}</td>
-                <td><span class="badge badge-freq">${p.method||'—'}</span></td>
-                <td style="color:var(--text3);font-size:12px">${p.notes||'—'}</td>
-              </tr>`).join('')}
-          </tbody>
-        </table>
-      </div>
-    </div>`:`
-    <div class="card">
-      <div style="text-align:center;padding:32px;color:var(--text3)">No payments recorded yet.<br><br>
-        <button class="btn btn-primary" onclick="openAddPaymentPanel()">Record first payment</button>
-      </div>
-    </div>`}
-  `;
-}
-
-// ── BALANCES
-function renderBalances(c){
-  const withBalance=allJobs.filter(j=>parseFloat(j.balance||0)>0).sort((a,b)=>parseFloat(b.balance)-parseFloat(a.balance));
-  const total=withBalance.reduce((s,j)=>s+(parseFloat(j.balance)||0),0);
-  c.innerHTML=`
-    <div class="section-header">
-      <h2>Outstanding balances</h2>
-      <span style="font-size:13px;color:var(--amber);font-weight:600">Total: £${total.toFixed(2)}</span>
-    </div>
-    <div class="card" style="padding:0">
-      <div class="table-wrap">
-        <table>
-          <thead><tr><th>Customer</th><th>Address</th><th>Round</th><th>Balance</th><th>Phone</th><th>Email</th><th>Action</th></tr></thead>
-          <tbody>
-            ${withBalance.map(j=>`
-              <tr style="cursor:pointer" onclick="openJobPanel('${j.id}')">
-                <td style="font-weight:500">${j.customer_name||'—'}</td>
-                <td style="color:var(--text3);font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${shortAddr(j.address)}</td>
-                <td><span class="badge badge-round">${j.round_name||'—'}</span></td>
-                <td><span class="badge badge-balance">£${parseFloat(j.balance).toFixed(2)}</span></td>
-                <td style="color:var(--text3);font-size:12px">${j.phone||'—'}</td>
-                <td style="color:var(--text3);font-size:12px">${j.email||'—'}</td>
-                <td><button class="btn btn-sm btn-success" onclick="event.stopPropagation();openRecordPayment('${j.id}')">Record payment</button></td>
-              </tr>`).join('')}
-          </tbody>
-        </table>
-      </div>
-    </div>
-  `;
-}
-
-// ── JOB DETAIL PANEL
-function openJobPanel(id){
-  const j=allJobs.find(x=>x.id===id);
-  if(!j) return;
-  document.getElementById('panelTitle').textContent=j.customer_name||'Job';
-  document.getElementById('panelSub').textContent=shortAddr(j.address);
-  document.getElementById('panelStatus').innerHTML=`<span class="badge badge-${j.status}">${j.status}</span>`;
-
-  const monthly=weeklyValue(j.price,j.frequency)*4.33;
-  const annual=monthly*12;
-
-  document.getElementById('panelBody').innerHTML=`
-    <div class="panel-section">
-      <div class="panel-section-title">Customer</div>
-      <div class="detail-row"><div class="detail-key">Name</div><div class="detail-val" style="font-weight:500">${j.customer_name||'—'}</div></div>
-      <div class="detail-row"><div class="detail-key">Address</div><div class="detail-val">${j.address||'—'}</div></div>
-      <div class="detail-row"><div class="detail-key">Phone</div><div class="detail-val">${j.phone?`<a href="tel:${j.phone}" style="color:var(--blue)">${j.phone}</a>`:'—'}</div></div>
-      <div class="detail-row"><div class="detail-key">Email</div><div class="detail-val">${j.email?`<a href="mailto:${j.email}" style="color:var(--blue);font-size:11px">${j.email}</a>`:'—'}</div></div>
-    </div>
-    <div class="panel-section">
-      <div class="panel-section-title">Job details</div>
-      <div class="detail-row"><div class="detail-key">Job ref</div><div class="detail-val" style="font-size:11px;color:var(--text3)">${j.job_ref||'—'}</div></div>
-      <div class="detail-row"><div class="detail-key">Service</div><div class="detail-val">${j.service||'Window Cleaning'}</div></div>
-      <div class="detail-row"><div class="detail-key">Frequency</div><div class="detail-val">${j.frequency_raw||freqLabel(j.frequency)}</div></div>
-      <div class="detail-row"><div class="detail-key">Round</div><div class="detail-val"><span class="badge badge-round">${j.round_name||'—'}</span></div></div>
-      <div class="detail-row"><div class="detail-key">Assignee</div><div class="detail-val" style="color:${opColour(firstOp(j.assignee))}">${j.assignee||'—'}</div></div>
-      <div class="detail-row"><div class="detail-key">Notes</div><div class="detail-val" style="color:var(--text3)">${j.notes||'—'}</div></div>
-    </div>
-    <div class="panel-section">
-      <div class="panel-section-title">Revenue</div>
-      <div class="detail-row"><div class="detail-key">Per visit</div><div class="detail-val" style="font-weight:600;color:var(--green)">£${j.price||0}</div></div>
-      <div class="detail-row"><div class="detail-key">Per month</div><div class="detail-val" style="color:var(--green)">£${monthly.toFixed(2)}</div></div>
-      <div class="detail-row"><div class="detail-key">Per year</div><div class="detail-val" style="color:var(--green)">£${annual.toFixed(2)}</div></div>
-      <div class="detail-row"><div class="detail-key">Balance</div><div class="detail-val">${parseFloat(j.balance||0)>0?`<span class="badge badge-balance">£${parseFloat(j.balance).toFixed(2)} owed</span>`:'£0.00'}</div></div>
-    </div>
-    <div class="panel-section">
-      <div class="panel-section-title">History</div>
-      <div class="detail-row"><div class="detail-key">Last done</div><div class="detail-val">${fmtDate(j.last_done)}</div></div>
-      <div class="detail-row"><div class="detail-key">Next due</div><div class="detail-val" class="${dueClass(j.next_due)}">${fmtDate(j.next_due)}</div></div>
-      <div class="detail-row"><div class="detail-key">Done</div><div class="detail-val">${j.done||0} times</div></div>
-      <div class="detail-row"><div class="detail-key">Skipped</div><div class="detail-val">${j.skipped||0}</div></div>
-      <div class="detail-row"><div class="detail-key">Not done</div><div class="detail-val">${j.not_done||0}</div></div>
-    </div>
-    <div class="panel-section">
-      <div class="panel-section-title">Edit job</div>
-      <div class="form-group"><label class="form-label">Price per visit (£)</label>
-        <input class="form-input" id="edit_price" type="number" step="0.50" value="${j.price||0}"></div>
-      <div class="form-group"><label class="form-label">Round</label>
-        <select class="form-input" id="edit_round">
-          ${allRounds.map(r=>`<option value="${r.name}" ${r.name===j.round_name?'selected':''}>${r.name}</option>`).join('')}
-          <option value="" ${!j.round_name?'selected':''}>— No round —</option>
-        </select></div>
-      <div class="form-group"><label class="form-label">Status</label>
-        <select class="form-input" id="edit_status">
-          <option value="active" ${j.status==='active'?'selected':''}>Active</option>
-          <option value="inactive" ${j.status==='inactive'?'selected':''}>Inactive</option>
-          <option value="prospect" ${j.status==='prospect'?'selected':''}>Prospect</option>
-        </select></div>
-      <div class="form-group"><label class="form-label">Notes</label>
-        <textarea class="form-input" id="edit_notes" rows="2">${j.notes||''}</textarea></div>
-      <button class="btn btn-primary" style="width:100%" onclick="saveJobEdit('${j.id}')">Save changes</button>
-    </div>
-  `;
-
-  document.getElementById('panelActions').innerHTML=`
-    <button class="btn btn-success" style="flex:1" onclick="openRecordPayment('${j.id}')">£ Record payment</button>
-    <button class="btn" style="flex:1" onclick="markJobDone('${j.id}')">✓ Mark done</button>
-    <button class="btn btn-danger" onclick="deleteJob('${j.id}')">Delete</button>
-  `;
-
-  document.getElementById('detailPanel').classList.add('open');
-}
-
-async function saveJobEdit(id){
-  const price=parseFloat(document.getElementById('edit_price').value)||0;
-  const round_name=document.getElementById('edit_round').value;
-  const status=document.getElementById('edit_status').value;
-  const notes=document.getElementById('edit_notes').value.trim();
-  const {error}=await sb.from('jobs').update({price,round_name,status,notes}).eq('id',id);
-  if(error){showToast('Save failed','error');return;}
-  const j=allJobs.find(x=>x.id===id);
-  if(j){Object.assign(j,{price,round_name,status,notes});}
-  showToast('Job saved');
-  renderCurrentPage();
-}
-
-async function markJobDone(id){
-  const j=allJobs.find(x=>x.id===id);
-  if(!j) return;
-  const newDone=(j.done||0)+1;
-  const lastDone=todayStr;
-  const {error}=await sb.from('jobs').update({done:newDone,last_done:lastDone}).eq('id',id);
-  if(error){showToast('Failed','error');return;}
-  Object.assign(j,{done:newDone,last_done:lastDone});
-  showToast('Marked as done');
-  openJobPanel(id);
-}
-
-async function deleteJob(id){
-  if(!confirm('Delete this job permanently?')) return;
-  const {error}=await sb.from('jobs').delete().eq('id',id);
-  if(error){showToast('Delete failed','error');return;}
-  allJobs=allJobs.filter(j=>j.id!==id);
-  closePanel();
-  showToast('Job deleted');
-  renderCurrentPage();
-}
-
-// ── CUSTOMER PANEL
-function openCustomerPanel(id){
-  const cu=allCustomers.find(x=>x.id===id);
-  if(!cu) return;
-  const custJobs=allJobs.filter(j=>j.customer_id===id);
-  document.getElementById('panelTitle').textContent=cu.name;
-  document.getElementById('panelSub').textContent=shortAddr(cu.address);
-  document.getElementById('panelStatus').innerHTML=`<span class="badge badge-${cu.status||'active'}">${cu.status||'active'}</span>`;
-  document.getElementById('panelBody').innerHTML=`
-    <div class="panel-section">
-      <div class="panel-section-title">Contact</div>
-      <div class="detail-row"><div class="detail-key">Reference</div><div class="detail-val" style="font-size:11px;color:var(--text3)">${cu.reference||'—'}</div></div>
-      <div class="detail-row"><div class="detail-key">Address</div><div class="detail-val">${cu.address||'—'}</div></div>
-      <div class="detail-row"><div class="detail-key">Phone</div><div class="detail-val">${cu.phone?`<a href="tel:${cu.phone}" style="color:var(--blue)">${cu.phone}</a>`:'—'}</div></div>
-      <div class="detail-row"><div class="detail-key">Email</div><div class="detail-val">${cu.email?`<a href="mailto:${cu.email}" style="color:var(--blue);font-size:11px">${cu.email}</a>`:'—'}</div></div>
-      <div class="detail-row"><div class="detail-key">Balance</div><div class="detail-val">${parseFloat(cu.balance||0)>0?`<span class="badge badge-balance">£${parseFloat(cu.balance).toFixed(2)}</span>`:'£0.00'}</div></div>
-    </div>
-    <div class="panel-section">
-      <div class="panel-section-title">Jobs (${custJobs.length})</div>
-      ${custJobs.map(j=>`
-        <div style="padding:8px;background:var(--bg3);border-radius:8px;margin-bottom:6px;cursor:pointer" onclick="openJobPanel('${j.id}')">
-          <div style="display:flex;justify-content:space-between;align-items:center">
-            <span style="font-size:12px;font-weight:500">${j.service||'Window Cleaning'}</span>
-            <span style="font-size:12px;color:var(--green);font-weight:600">£${j.price}</span>
-          </div>
-          <div style="font-size:11px;color:var(--text3);margin-top:3px">${j.round_name||'No round'} · ${freqLabel(j.frequency)} · <span class="badge badge-${j.status}" style="font-size:9px">${j.status}</span></div>
-          <div style="font-size:11px;color:var(--text3);margin-top:2px">Next due: ${fmtDate(j.next_due)}</div>
-        </div>`).join('')}
-    </div>
-  `;
-  document.getElementById('panelActions').innerHTML=`<button class="btn" style="flex:1" onclick="closePanel()">Close</button>`;
-  document.getElementById('detailPanel').classList.add('open');
-}
-
-// ── ADD PAYMENT PANEL
-function openRecordPayment(jobId){
-  const j=allJobs.find(x=>x.id===jobId);
-  document.getElementById('panelTitle').textContent='Record Payment';
-  document.getElementById('panelSub').textContent=j?j.customer_name:'';
-  document.getElementById('panelStatus').innerHTML='';
-  document.getElementById('panelBody').innerHTML=`
-    <div class="panel-section">
-      <div class="form-group"><label class="form-label">Amount (£)</label>
-        <input class="form-input" id="pay_amount" type="number" step="0.01" placeholder="0.00" value="${j?parseFloat(j.balance||0).toFixed(2):''}"></div>
-      <div class="form-group"><label class="form-label">Payment method</label>
-        <select class="form-input" id="pay_method">
-          <option value="cash">Cash</option>
-          <option value="bacs">BACS</option>
-          <option value="gocardless">GoCardless</option>
-          <option value="stripe">Stripe</option>
-          <option value="cheque">Cheque</option>
-        </select></div>
-      <div class="form-group"><label class="form-label">Date</label>
-        <input class="form-input" id="pay_date" type="date" value="${todayStr}"></div>
-      <div class="form-group"><label class="form-label">Notes</label>
-        <input class="form-input" id="pay_notes" placeholder="Optional reference..."></div>
-    </div>
-  `;
-  document.getElementById('panelActions').innerHTML=`
-    <button class="btn btn-success" style="flex:1" onclick="savePayment('${jobId}')">Save payment</button>
-    <button class="btn" onclick="closePanel()">Cancel</button>
-  `;
-  document.getElementById('detailPanel').classList.add('open');
-}
-
-async function savePayment(jobId){
-  const amount=parseFloat(document.getElementById('pay_amount').value)||0;
-  const method=document.getElementById('pay_method').value;
-  const date=document.getElementById('pay_date').value;
-  const notes=document.getElementById('pay_notes').value.trim();
-  if(!amount){showToast('Enter an amount','error');return;}
-
-  const j=allJobs.find(x=>x.id===jobId);
-  const payment={id:genId(),customer_id:j?j.customer_id:'',job_id:jobId,amount,method,notes,payment_date:date,reference:''};
-
-  const {error}=await sb.from('payments').insert(payment);
-  if(error){showToast('Failed to save payment','error');return;}
-
-  // Update job balance
-  if(j){
-    const newBalance=Math.max(0,(parseFloat(j.balance)||0)-amount);
-    await sb.from('jobs').update({balance:newBalance}).eq('id',jobId);
-    j.balance=newBalance;
+async function doGeo(){
+  const un=AJ.filter(j=>!j.lat||!j.lng);
+  if(!un.length){toast('All jobs mapped!');return;}
+  const btn=document.getElementById('gcBtn');if(btn)btn.disabled=true;
+  toast(`Geocoding ${un.length} jobs — takes a few minutes`);
+  let done=0;
+  for(const j of un){
+    try{
+      const q=encodeURIComponent((j.address||'')+', UK');
+      const r=await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${q}&limit=1`);
+      const d=await r.json();
+      if(d&&d.length){
+        j.lat=parseFloat(d[0].lat);j.lng=parseFloat(d[0].lon);
+        await sb.from('jobs').update({lat:j.lat,lng:j.lng}).eq('id',j.id);
+        done++;rfVP();
+        const mc=document.getElementById('mc');
+        if(mc)mc.textContent=`${AJ.filter(x=>x.lat&&x.lng).length}/${AJ.length} mapped (${done}/${un.length})`;
+      }
+      await new Promise(r=>setTimeout(r,260));
+    }catch(e){}
   }
-
-  allPayments.unshift(payment);
-  showToast(`Payment of £${amount.toFixed(2)} recorded`);
-  closePanel();
-  renderCurrentPage();
+  toast(`Geocoded ${done} jobs`);if(btn)btn.disabled=false;bLeg();
 }
 
-function openAddPaymentPanel(){openRecordPayment('');}
-
-// ── ADD JOB PANEL
-function openAddJobPanel(){
-  document.getElementById('panelTitle').textContent='Add new job';
-  document.getElementById('panelSub').textContent='';
-  document.getElementById('panelStatus').innerHTML='';
-  document.getElementById('panelBody').innerHTML=`
-    <div class="panel-section">
-      <div class="form-group"><label class="form-label">Customer name *</label><input class="form-input" id="new_name" placeholder="Full name"></div>
-      <div class="form-group"><label class="form-label">Address *</label><input class="form-input" id="new_addr" placeholder="Full address"></div>
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="new_phone" placeholder="07..."></div>
-        <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="new_email" type="email" placeholder="email@..."></div>
-      </div>
-      <div class="form-row">
-        <div class="form-group"><label class="form-label">Price (£) *</label><input class="form-input" id="new_price" type="number" step="0.50" placeholder="0.00"></div>
-        <div class="form-group"><label class="form-label">Frequency</label>
-          <select class="form-input" id="new_freq">
-            <option value="1w">1-weekly</option>
-            <option value="2w">2-weekly</option>
-            <option value="4w" selected>4-weekly</option>
-            <option value="6w">6-weekly</option>
-            <option value="8w">8-weekly</option>
-            <option value="12w">12-weekly</option>
-            <option value="ad_hoc">Ad hoc</option>
-          </select></div>
-      </div>
-      <div class="form-group"><label class="form-label">Round</label>
-        <select class="form-input" id="new_round">
-          <option value="">— No round —</option>
-          ${allRounds.map(r=>`<option value="${r.name}">${r.name}</option>`).join('')}
-        </select></div>
-      <div class="form-group"><label class="form-label">Assignee</label>
-        <select class="form-input" id="new_assignee">
-          <option value="">— Unassigned —</option>
-          ${['Nick Kennedy','Danny','Jonny','Junior','Jordan','Austin','Thierry','Adam Steward'].map(op=>`<option value="${op}">${op}</option>`).join('')}
-        </select></div>
-      <div class="form-group"><label class="form-label">Notes</label><textarea class="form-input" id="new_notes" rows="2" placeholder="Access info..."></textarea></div>
+function rJobs(c){
+  const fmap={0:'all',1:'active',2:'inactive',3:'prospect',4:'overdue'};
+  jF=fmap[sp]||'active';
+  let jobs=AJ;
+  if(jF==='active')jobs=AJ.filter(j=>j.status==='active');
+  else if(jF==='inactive')jobs=AJ.filter(j=>j.status==='inactive');
+  else if(jF==='prospect')jobs=AJ.filter(j=>j.status==='prospect');
+  else if(jF==='overdue')jobs=AJ.filter(j=>j.next_due&&j.next_due<tds&&j.status==='active');
+  c.innerHTML=`<div class="jw">
+    <div class="jl">
+      <div class="jlh"><div style="display:flex;align-items:center;justify-content:space-between"><span style="font-size:12px;font-weight:600;color:var(--text2)">${jobs.length} jobs</span><button class="btn btn-sm btn-nv" onclick="oAJ()">+ Add</button></div></div>
+      ${jobs.map(j=>`<div class="jli ${selJ===j.id?'sel':''}" id="jli_${j.id}" onclick="sj('${j.id}')">
+        <div class="jli-n">${j.customer_name||'—'}</div>
+        <div class="jli-a">${sa(j.address)}</div>
+        <div class="jli-m"><span class="b b-round">${j.round_name||'—'}</span><span style="font-size:11px;color:var(--green);font-weight:600">£${j.price}</span><span class="b b-${j.status}">${j.status}</span>${j.next_due&&dc(j.next_due)?`<span class="b ${dc(j.next_due)}">${fd(j.next_due)}</span>`:''}</div>
+      </div>`).join('')}
     </div>
-  `;
-  document.getElementById('panelActions').innerHTML=`
-    <button class="btn btn-primary" style="flex:1" onclick="saveNewJob()">Add job</button>
-    <button class="btn" onclick="closePanel()">Cancel</button>
-  `;
-  document.getElementById('detailPanel').classList.add('open');
+    <div class="jmap"><div id="jsMap"></div></div>
+  </div>`;
+  setTimeout(()=>initJM(jobs),60);
 }
 
-async function saveNewJob(){
-  const name=document.getElementById('new_name').value.trim();
-  const addr=document.getElementById('new_addr').value.trim();
-  const price=parseFloat(document.getElementById('new_price').value)||0;
-  if(!name||!addr||!price){showToast('Please fill required fields','error');return;}
-
-  const custId=genId();
-  const jobId=genId();
-  const cu={id:custId,reference:'',name,address:addr,phone:document.getElementById('new_phone').value.trim(),email:document.getElementById('new_email').value.trim(),status:'active',balance:0};
-  const job={id:jobId,job_ref:'',customer_id:custId,customer_name:name,address:addr,phone:cu.phone,email:cu.email,status:'active',balance:0,assignee:document.getElementById('new_assignee').value,notes:document.getElementById('new_notes').value.trim(),service:'Window Cleaning',frequency:document.getElementById('new_freq').value,round_name:document.getElementById('new_round').value,price,duration:'00:30',occurrences:0,not_done:0,skipped:0,done:0,last_done:null,next_due:null,source:''};
-
-  const {error:ce}=await sb.from('customers').insert(cu);
-  if(ce){showToast('Failed to save customer','error');return;}
-  const {error:je}=await sb.from('jobs').insert(job);
-  if(je){showToast('Failed to save job','error');return;}
-
-  allCustomers.push(cu);
-  allJobs.push(job);
-  showToast('Job added: '+name);
-  closePanel();
-  renderCurrentPage();
+function initJM(jobs){
+  if(jsMap){jsMap.remove();jsMap=null;jsMk={};}
+  jsMap=L.map('jsMap').setView([54.0,-1.5],9);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap © CARTO',subdomains:'abcd',maxZoom:19}).addTo(jsMap);
+  const bounds=[];
+  jobs.filter(j=>j.lat&&j.lng).forEach(j=>{
+    const ic=L.divIcon({html:`<div style="width:18px;height:24px"><div style="width:18px;height:18px;border-radius:50% 50% 50% 0;background:${rc(j.round_name)};transform:rotate(-45deg);border:2px solid #fff;box-shadow:0 2px 4px rgba(0,0,0,.3)"></div></div>`,iconSize:[18,24],iconAnchor:[9,24],className:''});
+    const m=L.marker([j.lat,j.lng],{icon:ic}).addTo(jsMap);
+    m.bindPopup(`<b>${j.customer_name}</b><br>${sa(j.address)}<br>£${j.price} · ${fl(j.frequency)}`);
+    m.on('click',()=>sj(j.id));
+    jsMk[j.id]=m;bounds.push([j.lat,j.lng]);
+  });
+  if(bounds.length>1)jsMap.fitBounds(bounds,{padding:[30,30],maxZoom:12});
 }
 
-// ── SEARCH
-function onSearch(val){
-  if(!val||val.length<2){hideSearch();return;}
-  const q=val.toLowerCase();
-  const results=allJobs.filter(j=>
-    (j.customer_name||'').toLowerCase().includes(q)||
-    (j.address||'').toLowerCase().includes(q)||
-    (j.phone||'').includes(q)||
-    (j.round_name||'').toLowerCase().includes(q)
-  ).slice(0,10);
+function sj(id){
+  selJ=id;
+  document.querySelectorAll('.jli').forEach(e=>e.classList.remove('sel'));
+  const el=document.getElementById('jli_'+id);
+  if(el){el.classList.add('sel');el.scrollIntoView({block:'nearest'});}
+  const j=AJ.find(x=>x.id===id);
+  if(j&&j.lat&&j.lng&&jsMap){jsMap.setView([j.lat,j.lng],15);if(jsMk[id])jsMk[id].openPopup();}
+  ojp(id);
+}
 
-  const el=document.getElementById('searchResults');
-  if(!results.length){el.style.display='none';return;}
-  el.style.display='block';
-  el.innerHTML=results.map(j=>`
-    <div class="search-result-item" onclick="openJobPanel('${j.id}');document.getElementById('globalSearch').value='';hideSearch()">
-      <div class="sri-name">${j.customer_name||'—'}</div>
-      <div class="sri-addr">${shortAddr(j.address)}</div>
-      <div class="sri-meta">
-        <span class="badge badge-round" style="font-size:9px">${j.round_name||'—'}</span>
-        <span style="font-size:10px;color:var(--green)">£${j.price}</span>
-        <span class="badge badge-${j.status}" style="font-size:9px">${j.status}</span>
+function rDebts(c){if(sp===0)rOwing(c);else rRisks(c);}
+function rOwing(c){
+  const ow=AJ.filter(j=>parseFloat(j.balance||0)>0).sort((a,b)=>parseFloat(b.balance)-parseFloat(a.balance));
+  const tot=ow.reduce((s,j)=>s+(parseFloat(j.balance)||0),0);
+  c.innerHTML=`
+    <div class="srow" style="grid-template-columns:repeat(3,1fr)">
+      <div class="sc"><div class="sl">Customers owing</div><div class="sv rd">${ow.length}</div></div>
+      <div class="sc"><div class="sl">Total outstanding</div><div class="sv am">£${tot.toFixed(2)}</div></div>
+      <div class="sc"><div class="sl">Average balance</div><div class="sv">${ow.length?'£'+(tot/ow.length).toFixed(2):'£0'}</div></div>
+    </div>
+    <div class="tc"><div class="tch"><span class="tct">Outstanding balances</span></div><div class="tw"><table><thead><tr><th>Customer</th><th>Address</th><th>Round</th><th>Balance</th><th>Phone</th><th></th></tr></thead><tbody>
+      ${ow.map(j=>`<tr onclick="ojp('${j.id}')"><td style="font-weight:600">${j.customer_name}</td><td style="color:var(--text3);font-size:12px">${sa(j.address)}</td><td><span class="b b-round">${j.round_name||'—'}</span></td><td><span class="b b-bal">£${parseFloat(j.balance).toFixed(2)}</span></td><td>${j.phone?`<a href="tel:${j.phone}" style="color:var(--blue);font-size:12px">${j.phone}</a>`:'—'}</td><td><button class="btn btn-sm btn-gn" onclick="event.stopPropagation();orp('${j.id}')">Pay</button></td></tr>`).join('')}
+    </tbody></table></div></div>`;
+}
+function rRisks(c){
+  const r=AJ.filter(j=>j.status==='active'&&parseFloat(j.balance||0)>parseFloat(j.price||0)*2);
+  c.innerHTML=`<div class="tc"><div class="tch"><span class="tct">Payment risks</span></div><div class="tw"><table><thead><tr><th>Customer</th><th>Round</th><th>Price</th><th>Balance</th><th>Phone</th></tr></thead><tbody>
+    ${r.length?r.map(j=>`<tr onclick="ojp('${j.id}')"><td style="font-weight:600">${j.customer_name}</td><td><span class="b b-round">${j.round_name||'—'}</span></td><td>£${j.price}</td><td><span class="b b-bal">£${parseFloat(j.balance).toFixed(2)}</span></td><td>${j.phone?`<a href="tel:${j.phone}" style="color:var(--blue);font-size:12px">${j.phone}</a>`:'—'}</td></tr>`).join('')
+    :'<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--text3)">No payment risks</td></tr>'}
+  </tbody></table></div></div>`;
+}
+
+function rCusts(c){
+  c.innerHTML=`<div class="tc"><div class="tch"><span class="tct">Customers (${AC.length})</span><button class="btn btn-sm btn-nv" onclick="oAJ()">+ Add</button></div><div class="tw"><table><thead><tr><th>Name</th><th>Address</th><th>Phone</th><th>Email</th><th>Balance</th><th>Status</th><th>Jobs</th></tr></thead><tbody>
+    ${AC.map(cu=>{const cj=AJ.filter(j=>j.customer_id===cu.id);return `<tr onclick="ocp('${cu.id}')"><td style="font-weight:600">${cu.name||'—'}</td><td style="color:var(--text3);font-size:12px;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${sa(cu.address)}</td><td>${cu.phone?`<a href="tel:${cu.phone}" style="color:var(--blue);font-size:12px">${cu.phone}</a>`:'—'}</td><td style="font-size:12px;color:var(--text3);max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${cu.email||'—'}</td><td>${parseFloat(cu.balance||0)>0?`<span class="b b-bal">£${parseFloat(cu.balance).toFixed(2)}</span>`:'—'}</td><td><span class="b b-${cu.status||'active'}">${cu.status||'active'}</span></td><td style="color:var(--text3)">${cj.length}</td></tr>`;}).join('')}
+  </tbody></table></div></div>`;
+}
+
+function rPays(c){
+  if(sp===1){orp('');return;}
+  c.innerHTML=`<div class="tc"><div class="tch"><span class="tct">Payments (${AP.length})</span><button class="btn btn-sm btn-nv" onclick="orp('')">+ Record</button></div>
+    ${AP.length?`<div class="tw"><table><thead><tr><th>Date</th><th>Customer</th><th>Amount</th><th>Method</th><th>Notes</th></tr></thead><tbody>
+      ${AP.map(p=>`<tr><td style="color:var(--text3)">${fd(p.payment_date)}</td><td>${p.customer_id||'—'}</td><td style="font-weight:600;color:var(--green)">£${parseFloat(p.amount||0).toFixed(2)}</td><td><span class="b b-freq">${p.method||'—'}</span></td><td style="color:var(--text3);font-size:12px">${p.notes||'—'}</td></tr>`).join('')}
+    </tbody></table></div>`:'<div style="padding:24px;text-align:center;color:var(--text3)">No payments yet.<br><br><button class="btn btn-nv" onclick="orp(\'\')">Record payment</button></div>'}
+  </div>`;
+}
+
+function ojp(id){
+  const j=AJ.find(x=>x.id===id);if(!j)return;
+  document.getElementById('pt').textContent=j.customer_name||'Job';
+  document.getElementById('ps2').textContent=sa(j.address);
+  document.getElementById('pst2').innerHTML=`<span class="b b-${j.status}">${j.status}</span>`;
+  const mo=wv(j.price,j.frequency)*4.33;
+  document.getElementById('pb').innerHTML=`
+    <div class="ps"><div class="pst">Customer</div>
+      <div class="dr"><div class="dk">Name</div><div class="dv" style="font-weight:700">${j.customer_name||'—'}</div></div>
+      <div class="dr"><div class="dk">Address</div><div class="dv">${j.address||'—'}</div></div>
+      <div class="dr"><div class="dk">Phone</div><div class="dv">${j.phone?`<a href="tel:${j.phone}" style="color:var(--blue)">${j.phone}</a>`:'—'}</div></div>
+      <div class="dr"><div class="dk">Email</div><div class="dv">${j.email?`<a href="mailto:${j.email}" style="color:var(--blue);font-size:11px">${j.email}</a>`:'—'}</div></div>
+    </div>
+    <div class="ps"><div class="pst">Job details</div>
+      <div class="dr"><div class="dk">Ref</div><div class="dv" style="font-size:11px;color:var(--text3)">${j.job_ref||'—'}</div></div>
+      <div class="dr"><div class="dk">Service</div><div class="dv">${j.service||'Window Cleaning'}</div></div>
+      <div class="dr"><div class="dk">Frequency</div><div class="dv">${fl(j.frequency)}</div></div>
+      <div class="dr"><div class="dk">Round</div><div class="dv"><span class="b b-round">${j.round_name||'—'}</span></div></div>
+      <div class="dr"><div class="dk">Assignee</div><div class="dv">${j.assignee||'—'}</div></div>
+      <div class="dr"><div class="dk">Notes</div><div class="dv" style="color:var(--text3)">${j.notes||'—'}</div></div>
+    </div>
+    <div class="ps"><div class="pst">Revenue</div>
+      <div class="dr"><div class="dk">Per visit</div><div class="dv" style="font-weight:700;color:var(--green)">£${j.price||0}</div></div>
+      <div class="dr"><div class="dk">Monthly</div><div class="dv" style="color:var(--green)">£${mo.toFixed(2)}</div></div>
+      <div class="dr"><div class="dk">Annual</div><div class="dv" style="color:var(--green)">£${(mo*12).toFixed(2)}</div></div>
+      <div class="dr"><div class="dk">Balance</div><div class="dv">${parseFloat(j.balance||0)>0?`<span class="b b-bal">£${parseFloat(j.balance).toFixed(2)}</span>`:'Clear'}</div></div>
+    </div>
+    <div class="ps"><div class="pst">History</div>
+      <div class="dr"><div class="dk">Last done</div><div class="dv">${fd(j.last_done)}</div></div>
+      <div class="dr"><div class="dk">Next due</div><div class="dv">${fd(j.next_due)}</div></div>
+      <div class="dr"><div class="dk">Done</div><div class="dv">${j.done||0}×</div></div>
+      <div class="dr"><div class="dk">Skipped</div><div class="dv">${j.skipped||0}</div></div>
+    </div>
+    <div class="ps"><div class="pst">Edit</div>
+      <div class="fg"><label class="fl">Price (£)</label><input class="fi" id="ep" type="number" step="0.50" value="${j.price||0}"></div>
+      <div class="fg"><label class="fl">Round</label><select class="fi" id="er"><option value="">— None —</option>${AR.map(r=>`<option value="${r.name}" ${r.name===j.round_name?'selected':''}>${r.name}</option>`).join('')}</select></div>
+      <div class="fg"><label class="fl">Status</label><select class="fi" id="es"><option value="active" ${j.status==='active'?'selected':''}>Active</option><option value="inactive" ${j.status==='inactive'?'selected':''}>Inactive</option><option value="prospect" ${j.status==='prospect'?'selected':''}>Prospect</option></select></div>
+      <div class="fg"><label class="fl">Notes</label><textarea class="fi" id="en" rows="2">${j.notes||''}</textarea></div>
+      <button class="btn btn-nv" style="width:100%" onclick="sje('${j.id}')">Save changes</button>
+    </div>`;
+  document.getElementById('pa').innerHTML=`
+    <button class="btn btn-gn" style="flex:1" onclick="orp('${j.id}')">£ Payment</button>
+    <button class="btn btn-nv" style="flex:1" onclick="mjd('${j.id}')">✓ Done</button>
+    <button class="btn btn-rd" onclick="dj('${j.id}')">Delete</button>`;
+  document.getElementById('dp').classList.add('open');
+}
+
+async function sje(id){
+  const price=parseFloat(document.getElementById('ep').value)||0;
+  const round_name=document.getElementById('er').value;
+  const status=document.getElementById('es').value;
+  const notes=document.getElementById('en').value.trim();
+  const{error}=await sb.from('jobs').update({price,round_name,status,notes}).eq('id',id);
+  if(error){toast('Save failed','err');return;}
+  const j=AJ.find(x=>x.id===id);if(j)Object.assign(j,{price,round_name,status,notes});
+  toast('Saved');render();
+}
+
+async function mjd(id){
+  const j=AJ.find(x=>x.id===id);if(!j)return;
+  const done=(j.done||0)+1;
+  const{error}=await sb.from('jobs').update({done,last_done:tds}).eq('id',id);
+  if(error){toast('Failed','err');return;}
+  Object.assign(j,{done,last_done:tds});toast('Marked done');ojp(id);
+}
+
+async function dj(id){
+  if(!confirm('Delete this job?'))return;
+  await sb.from('jobs').delete().eq('id',id);
+  AJ=AJ.filter(j=>j.id!==id);cp();toast('Deleted');render();
+}
+
+function ocp(id){
+  const cu=AC.find(x=>x.id===id);if(!cu)return;
+  const cj=AJ.filter(j=>j.customer_id===id);
+  document.getElementById('pt').textContent=cu.name;
+  document.getElementById('ps2').textContent=sa(cu.address);
+  document.getElementById('pst2').innerHTML=`<span class="b b-${cu.status||'active'}">${cu.status||'active'}</span>`;
+  document.getElementById('pb').innerHTML=`
+    <div class="ps"><div class="pst">Contact</div>
+      <div class="dr"><div class="dk">Ref</div><div class="dv" style="font-size:11px;color:var(--text3)">${cu.reference||'—'}</div></div>
+      <div class="dr"><div class="dk">Address</div><div class="dv">${cu.address||'—'}</div></div>
+      <div class="dr"><div class="dk">Phone</div><div class="dv">${cu.phone?`<a href="tel:${cu.phone}" style="color:var(--blue)">${cu.phone}</a>`:'—'}</div></div>
+      <div class="dr"><div class="dk">Email</div><div class="dv">${cu.email?`<a href="mailto:${cu.email}" style="color:var(--blue);font-size:11px">${cu.email}</a>`:'—'}</div></div>
+      <div class="dr"><div class="dk">Balance</div><div class="dv">${parseFloat(cu.balance||0)>0?`<span class="b b-bal">£${parseFloat(cu.balance).toFixed(2)}</span>`:'Clear'}</div></div>
+    </div>
+    <div class="ps"><div class="pst">Jobs (${cj.length})</div>
+      ${cj.map(j=>`<div style="padding:8px;background:var(--bg2);border-radius:8px;margin-bottom:5px;cursor:pointer;border:1px solid var(--border)" onclick="ojp('${j.id}')"><div style="display:flex;justify-content:space-between"><span style="font-size:12px;font-weight:600">${j.service||'Window Cleaning'}</span><span style="color:var(--green);font-weight:700">£${j.price}</span></div><div style="font-size:11px;color:var(--text3);margin-top:2px">${j.round_name||'No round'} · ${fl(j.frequency)}</div><div style="font-size:11px;color:var(--text3)">Next: ${fd(j.next_due)}</div></div>`).join('')}
+    </div>`;
+  document.getElementById('pa').innerHTML=`<button class="btn" style="flex:1" onclick="cp()">Close</button>`;
+  document.getElementById('dp').classList.add('open');
+}
+
+function orp(jobId){
+  const j=jobId?AJ.find(x=>x.id===jobId):null;
+  document.getElementById('pt').textContent='Record Payment';
+  document.getElementById('ps2').textContent=j?j.customer_name:'';
+  document.getElementById('pst2').innerHTML='';
+  document.getElementById('pb').innerHTML=`
+    <div class="ps">
+      <div class="fg"><label class="fl">Amount (£) *</label><input class="fi" id="pa2" type="number" step="0.01" placeholder="0.00" value="${j?parseFloat(j.balance||0).toFixed(2):''}"></div>
+      <div class="fg"><label class="fl">Method</label><select class="fi" id="pm"><option value="cash">Cash</option><option value="bacs">BACS</option><option value="gocardless">GoCardless</option><option value="stripe">Stripe</option><option value="cheque">Cheque</option></select></div>
+      <div class="fg"><label class="fl">Date</label><input class="fi" id="pd" type="date" value="${tds}"></div>
+      <div class="fg"><label class="fl">Notes</label><input class="fi" id="pn" placeholder="Reference..."></div>
+    </div>`;
+  document.getElementById('pa').innerHTML=`
+    <button class="btn btn-gn" style="flex:1" onclick="svPay('${jobId||''}')">Save payment</button>
+    <button class="btn" onclick="cp()">Cancel</button>`;
+  document.getElementById('dp').classList.add('open');
+}
+
+async function svPay(jobId){
+  const amt=parseFloat(document.getElementById('pa2').value)||0;
+  const mth=document.getElementById('pm').value;
+  const dt=document.getElementById('pd').value;
+  const nt=document.getElementById('pn').value.trim();
+  if(!amt){toast('Enter amount','err');return;}
+  const j=jobId?AJ.find(x=>x.id===jobId):null;
+  const pay={id:gid(),customer_id:j?j.customer_id:'',job_id:jobId||'',amount:amt,method:mth,notes:nt,payment_date:dt,reference:''};
+  const{error}=await sb.from('payments').insert(pay);
+  if(error){toast('Failed','err');return;}
+  if(j){const nb=Math.max(0,(parseFloat(j.balance)||0)-amt);await sb.from('jobs').update({balance:nb}).eq('id',jobId);j.balance=nb;}
+  AP.unshift(pay);toast(`£${amt.toFixed(2)} recorded`);cp();render();
+}
+
+function oAJ(){
+  document.getElementById('pt').textContent='Add job';
+  document.getElementById('ps2').textContent='';
+  document.getElementById('pst2').innerHTML='';
+  document.getElementById('pb').innerHTML=`
+    <div class="ps">
+      <div class="fg"><label class="fl">Customer name *</label><input class="fi" id="nn" placeholder="Full name"></div>
+      <div class="fg"><label class="fl">Address *</label><input class="fi" id="na" placeholder="Full address + postcode"></div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Phone</label><input class="fi" id="np" placeholder="07..."></div>
+        <div class="fg"><label class="fl">Email</label><input class="fi" id="ne" type="email"></div>
       </div>
+      <div class="fr">
+        <div class="fg"><label class="fl">Price (£) *</label><input class="fi" id="npr" type="number" step="0.50" placeholder="0.00"></div>
+        <div class="fg"><label class="fl">Frequency</label><select class="fi" id="nf"><option value="1w">1-weekly</option><option value="2w">2-weekly</option><option value="4w" selected>4-weekly</option><option value="6w">6-weekly</option><option value="8w">8-weekly</option><option value="12w">12-weekly</option><option value="ad_hoc">Ad hoc</option></select></div>
+      </div>
+      <div class="fg"><label class="fl">Round</label><select class="fi" id="nro"><option value="">— No round —</option>${AR.map(r=>`<option value="${r.name}">${r.name}</option>`).join('')}</select></div>
+      <div class="fg"><label class="fl">Assignee</label><select class="fi" id="nas"><option value="">— Unassigned —</option>${['Nick Kennedy','Danny','Jonny','Junior','Jordan','Austin','Thierry'].map(o=>`<option value="${o}">${o}</option>`).join('')}</select></div>
+      <div class="fg"><label class="fl">Notes</label><textarea class="fi" id="nno" rows="2"></textarea></div>
+    </div>`;
+  document.getElementById('pa').innerHTML=`<button class="btn btn-nv" style="flex:1" onclick="svNJ()">Add job</button><button class="btn" onclick="cp()">Cancel</button>`;
+  document.getElementById('dp').classList.add('open');
+}
+
+async function svNJ(){
+  const name=document.getElementById('nn').value.trim();
+  const addr=document.getElementById('na').value.trim();
+  const price=parseFloat(document.getElementById('npr').value)||0;
+  if(!name||!addr||!price){toast('Fill required fields','err');return;}
+  const cid=gid(),jid=gid();
+  const cu={id:cid,reference:'',name,address:addr,phone:document.getElementById('np').value.trim(),email:document.getElementById('ne').value.trim(),status:'active',balance:0};
+  const job={id:jid,job_ref:'',customer_id:cid,customer_name:name,address:addr,phone:cu.phone,email:cu.email,status:'active',balance:0,assignee:document.getElementById('nas').value,notes:document.getElementById('nno').value.trim(),service:'Window Cleaning',frequency:document.getElementById('nf').value,round_name:document.getElementById('nro').value,price,duration:'00:30',occurrences:0,not_done:0,skipped:0,done:0,last_done:null,next_due:null,source:''};
+  await sb.from('customers').insert(cu);
+  await sb.from('jobs').insert(job);
+  AC.push(cu);AJ.push(job);
+  toast('Added: '+name);cp();render();
+}
+
+function doSrch(v){
+  if(!v||v.length<2){hideSR();return;}
+  const q=v.toLowerCase();
+  const res=AJ.filter(j=>(j.customer_name||'').toLowerCase().includes(q)||(j.address||'').toLowerCase().includes(q)||(j.phone||'').includes(q)).slice(0,8);
+  const el=document.getElementById('sr');
+  if(!res.length){el.style.display='none';return;}
+  el.style.display='block';
+  el.innerHTML=res.map(j=>`<div class="sri" onclick="ojp('${j.id}');document.getElementById('gs').value='';hideSR()"><div style="font-size:12px;font-weight:600">${j.customer_name}</div><div style="font-size:11px;color:var(--text3)">${sa(j.address)} · <span style="color:var(--green)">£${j.price}</span> · ${j.round_name||'—'}</div></div>`).join('');
+}
+function hideSR(){document.getElementById('sr').style.display='none';}
+function cp(){document.getElementById('dp').classList.remove('open');}
+
+// ── POSTCODE → ROUND MAPPING (built from actual job data)
+const PC_MAP={
+  'DH1':'Commercial','DH6':'Bowburn/Coxhoe','DL13':'Eastgate','DL16':'Spennymoor',
+  'DL17':'Ferryhill/Chilton','HG1':'Starbeck','HG2':'Pannal','HG3':'Jennifields 2',
+  'HG4':'Ripon','HG5':'Knaresborough','NE8':'Deckham','NE10':'Deckham',
+  'NE31':'Wardley/Hebburn','NE32':'Boldon Colliery','NE33':'Sunderland/South Shields',
+  'NE34':'Sunderland/South Shields','NE35':'Boldon Colliery','NE36':'Boldon Colliery',
+  'SR2':'SunderLand','SR3':'SunderLand','SR4':'SunderLand','SR5':'SunderLand',
+  'SR6':'SunderLand','SR7':'Murton','YO7':'Thirsk/Millenium Green',
+  'YO24':'Acomb','YO26':'York/Tockwith','YO30':'York Centre','YO31':'York Centre',
+  'BD':'Commercial','LS':'Commercial','DL':'Ferryhill/Chilton','TS':'Commercial'
+};
+
+function suggestRound(postcode, lat, lng){
+  if(!postcode) return null;
+  const pc=postcode.trim().toUpperCase();
+  // Try full outward code first (e.g. HG3)
+  const m1=pc.match(/^([A-Z]{1,2}[0-9][0-9A-Z]?)/);
+  if(m1 && PC_MAP[m1[1]]) return PC_MAP[m1[1]];
+  // Try area only (e.g. HG)
+  const m2=pc.match(/^([A-Z]{1,2})/);
+  if(m2 && PC_MAP[m2[1]]) return PC_MAP[m2[1]];
+  // Proximity fallback — find nearest mapped job
+  if(lat && lng){
+    let nearest=null, minDist=Infinity;
+    AJ.filter(j=>j.lat&&j.lng&&j.round_name&&j.status==='active').forEach(j=>{
+      const d=Math.sqrt(Math.pow(j.lat-lat,2)+Math.pow(j.lng-lng,2));
+      if(d<minDist){minDist=d;nearest=j.round_name;}
+    });
+    if(nearest && minDist<0.15) return nearest; // ~10 miles
+  }
+  return null;
+}
+
+// ── ROUNDS PAGE with Route Optimiser
+let activeRound=null, routeOptimised=false, routeLine=null, roundMap=null, roundMk={};
+
+function rRounds(c){
+  c.innerHTML=`<div class="jw">
+    <div class="jl" style="width:420px">
+      <div class="jlh">
+        <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+          <span style="font-size:13px;font-weight:700">Rounds (${AR.length})</span>
+        </div>
+        <select class="fi" id="roundSel" onchange="loadRound(this.value)" style="font-size:12px;padding:5px 8px">
+          <option value="">— Select a round —</option>
+          ${AR.map(r=>`<option value="${r.name}" ${activeRound===r.name?'selected':''}>${r.name}</option>`).join('')}
+        </select>
+      </div>
+      <div id="roundJobList" style="flex:1;overflow-y:auto">
+        ${activeRound ? buildRouteList() : '<div style="padding:24px;text-align:center;color:var(--text3);font-size:13px">Select a round to view jobs and optimise route</div>'}
+      </div>
+      ${activeRound ? `<div style="padding:10px 12px;border-top:1px solid var(--border);background:var(--bg2);display:flex;gap:8px;flex-shrink:0">
+        <button class="btn btn-nv" style="flex:1;font-size:12px" onclick="optimiseRoute()">🗺️ Optimise route</button>
+        <button class="btn" style="font-size:12px" onclick="resetRoute()">Reset</button>
+        <button class="btn btn-gn" style="font-size:12px" onclick="saveRouteOrder()">💾 Save order</button>
+      </div>` : ''}
+    </div>
+    <div class="jmap"><div id="roundMap" style="width:100%;height:100%"></div></div>
+  </div>`;
+  setTimeout(()=>{
+    initRoundMap();
+    if(activeRound) loadRound(activeRound,false);
+  },60);
+}
+
+function buildRouteList(){
+  const jobs=getRoundJobs();
+  if(!jobs.length) return '<div style="padding:16px;text-align:center;color:var(--text3)">No jobs in this round</div>';
+  const total=jobs.reduce((s,j)=>s+wv(j.price,j.frequency)*4.33,0);
+  return `<div style="padding:8px 12px;background:var(--bg2);border-bottom:1px solid var(--border);font-size:11px;color:var(--text3);display:flex;justify-content:space-between">
+    <span>${jobs.length} jobs · £${total.toFixed(0)}/mo</span>
+    <span>${jobs.filter(j=>j.lat&&j.lng).length} mapped</span>
+  </div>`+jobs.map((j,i)=>`
+    <div class="route-stop" id="rs_${j.id}" onclick="sj2('${j.id}')">
+      <div class="snum" style="background:${routeOptimised?'var(--navy)':'var(--bg3)';color:${routeOptimised?'#fff':'var(--text2)'}">${i+1}</div>
+      <div class="sinfo">
+        <div class="sname">${j.customer_name||'—'}</div>
+        <div class="saddr">${sa(j.address)}</div>
+      </div>
+      <div class="sprice">£${j.price}</div>
     </div>`).join('');
 }
 
-function hideSearch(){document.getElementById('searchResults').style.display='none';}
-
-// ── PANEL
-function closePanel(){document.getElementById('detailPanel').classList.remove('open');}
-
-// ── HELPERS
-function shortAddr(a){
-  if(!a) return '—';
-  const parts=a.split(',');
-  return parts.slice(0,2).join(',').trim();
+function getRoundJobs(){
+  return AJ.filter(j=>j.round_name===activeRound&&j.status==='active').sort((a,b)=>{
+    if(a.sort_order!=null&&b.sort_order!=null) return a.sort_order-b.sort_order;
+    return (a.customer_name||'').localeCompare(b.customer_name||'');
+  });
 }
 
-function freqLabel(f){
-  const m={'1w':'Weekly','2w':'2-weekly','4w':'4-weekly','6w':'6-weekly','8w':'8-weekly','12w':'12-weekly','ad_hoc':'Ad hoc'};
-  return m[f]||f||'—';
+function loadRound(name, redraw=true){
+  activeRound=name||null;
+  routeOptimised=false;
+  if(redraw) rRounds(document.getElementById('pc'));
+  else{
+    document.getElementById('roundSel').value=name||'';
+    document.getElementById('roundJobList').innerHTML=name?buildRouteList():'<div style="padding:24px;text-align:center;color:var(--text3);font-size:13px">Select a round to view jobs</div>';
+    refreshRoundMap();
+  }
 }
 
-function weeklyValue(price,freq){
-  const p=parseFloat(price)||0;
-  const m={'1w':1,'2w':0.5,'4w':0.25,'6w':1/6,'8w':0.125,'12w':1/12,'ad_hoc':0};
-  return p*(m[freq]||0);
+function initRoundMap(){
+  if(roundMap){roundMap.remove();roundMap=null;roundMk={};}
+  roundMap=L.map('roundMap').setView([54.0,-1.5],10);
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png',{attribution:'© OpenStreetMap © CARTO',subdomains:'abcd',maxZoom:19}).addTo(roundMap);
+  refreshRoundMap();
 }
 
-function fmtDate(d){
-  if(!d||d==='never') return '—';
-  try{
-    const dt=new Date(d+'T12:00:00');
-    return dt.toLocaleDateString('en-GB',{day:'numeric',month:'short',year:'2-digit'});
-  }catch(e){return d;}
+function refreshRoundMap(jobs){
+  if(!roundMap) return;
+  Object.values(roundMk).forEach(m=>roundMap.removeLayer(m));roundMk={};
+  if(routeLine){roundMap.removeLayer(routeLine);routeLine=null;}
+  const js=jobs||getRoundJobs();
+  const bounds=[];
+  js.forEach((j,i)=>{
+    if(!j.lat||!j.lng) return;
+    const col=rc(j.round_name);
+    const ic=L.divIcon({html:`<div style="width:28px;height:28px;border-radius:50%;background:${routeOptimised?col:'#64748b'};border:2px solid #fff;box-shadow:0 2px 5px rgba(0,0,0,.35);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff">${i+1}</div>`,iconSize:[28,28],iconAnchor:[14,14],className:''});
+    const m=L.marker([j.lat,j.lng],{icon:ic}).addTo(roundMap);
+    m.bindPopup(`<b>${i+1}. ${j.customer_name}</b><br>${j.address}<br>£${j.price} · ${fl(j.frequency)}`);
+    m.on('click',()=>sj2(j.id));
+    roundMk[j.id]=m;bounds.push([j.lat,j.lng]);
+  });
+  if(routeOptimised && bounds.length>1){
+    const pts=js.filter(j=>j.lat&&j.lng).map(j=>[j.lat,j.lng]);
+    routeLine=L.polyline(pts,{color:rc(activeRound)||'#2B5BA8',weight:3,opacity:0.7,dashArray:'6,4'}).addTo(roundMap);
+  }
+  if(bounds.length>1) roundMap.fitBounds(bounds,{padding:[40,40],maxZoom:14});
+  else if(bounds.length===1) roundMap.setView(bounds[0],14);
 }
 
-function dueClass(d){
-  if(!d||d==='never') return 'due-future';
-  if(d<todayStr) return 'due-overdue';
-  if(d===todayStr) return 'due-today';
-  return 'due-future';
+function sj2(id){
+  const j=AJ.find(x=>x.id===id);
+  if(j&&j.lat&&j.lng&&roundMap){roundMap.setView([j.lat,j.lng],16);if(roundMk[id])roundMk[id].openPopup();}
+  ojp(id);
 }
 
-function firstOp(assignee){
-  if(!assignee) return '—';
-  return assignee.split(',')[0].trim();
+// ── ROUTE OPTIMISER (nearest neighbour algorithm)
+function optimiseRoute(){
+  const jobs=getRoundJobs().filter(j=>j.lat&&j.lng);
+  if(jobs.length<2){toast('Need at least 2 mapped jobs to optimise','err');return;}
+  toast('Optimising route...');
+
+  // Nearest neighbour from first job
+  const unvisited=[...jobs];
+  const route=[unvisited.shift()];
+  while(unvisited.length){
+    const last=route[route.length-1];
+    let nearest=null,minD=Infinity,idx=0;
+    unvisited.forEach((j,i)=>{
+      const d=haversine(last.lat,last.lng,j.lat,j.lng);
+      if(d<minD){minD=d;nearest=j;idx=i;}
+    });
+    route.push(nearest);
+    unvisited.splice(idx,1);
+  }
+
+  // Calculate total distance
+  let totalKm=0;
+  for(let i=0;i<route.length-1;i++) totalKm+=haversine(route[i].lat,route[i].lng,route[i+1].lat,route[i+1].lng);
+
+  // Update sort_order in memory
+  route.forEach((j,i)=>{j.sort_order=i;});
+  // Add unmapped jobs at end
+  const unmapped=getRoundJobs().filter(j=>!j.lat||!j.lng);
+  unmapped.forEach((j,i)=>{j.sort_order=route.length+i;});
+
+  routeOptimised=true;
+  document.getElementById('roundJobList').innerHTML=buildRouteList();
+  refreshRoundMap(route.concat(unmapped));
+  toast(`Route optimised — ${totalKm.toFixed(1)}km total drive`);
 }
 
-function normaliseOp(assignee){
-  if(!assignee) return ['Unknown'];
-  return assignee.split(',').map(s=>s.trim()).filter(Boolean);
+function haversine(lat1,lng1,lat2,lng2){
+  const R=6371;
+  const dLat=(lat2-lat1)*Math.PI/180;
+  const dLng=(lng2-lng1)*Math.PI/180;
+  const a=Math.sin(dLat/2)*Math.sin(dLat/2)+Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)*Math.sin(dLng/2)*Math.sin(dLng/2);
+  return R*2*Math.atan2(Math.sqrt(a),Math.sqrt(1-a));
 }
 
-// ── Boot
-loadAll();
+function resetRoute(){
+  getRoundJobs().forEach(j=>delete j.sort_order);
+  routeOptimised=false;
+  document.getElementById('roundJobList').innerHTML=buildRouteList();
+  refreshRoundMap();
+  toast('Route reset');
+}
+
+async function saveRouteOrder(){
+  const jobs=getRoundJobs();
+  if(!jobs.length) return;
+  toast('Saving route order...');
+  for(const j of jobs){
+    if(j.sort_order!=null){
+      await sb.from('jobs').update({sort_order:j.sort_order}).eq('id',j.id);
+    }
+  }
+  toast('Route order saved permanently');
+}
+
+bSN();boot();
 </script>
 </body>
 </html>
